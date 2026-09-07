@@ -105,7 +105,11 @@ jobs:
 
       - name: Nenhum ficheiro .env commitado (restrição 9)
         run: |
-          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example'; then
+          # Os ficheiros `*.example` são modelos SEM segredos e existem para
+          # documentar o que é preciso preencher — `.env.example` e
+          # `.env.producao.example`. O que não pode entrar é um `.env` a sério:
+          # `.env`, `.env.local`, `.env.producao`.
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.example$'; then
             echo "::error::ficheiro .env no repositório — ver ESPECIFICACAO.md §8, restrição 9"
             exit 1
           fi
