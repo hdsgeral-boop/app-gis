@@ -1,0 +1,903 @@
+/**
+ * JSON Schema da definição de formulário do Consul Colect — FONTE ÚNICA DA VERDADE.
+ *
+ * Está em TypeScript, e não num `.json`, de propósito: as três aplicações
+ * carregam-no por `import` normal (Node, Metro do React Native, bundler do
+ * Next.js), sem `import attributes` nem truques de resolução por runtime.
+ *
+ * O ficheiro `form-definition.schema.json` é GERADO a partir daqui
+ * (`pnpm --filter @cvforms/form-core schema:emit`) e existe apenas para
+ * consumidores externos. O CI falha se estiverem dessincronizados.
+ */
+
+export const formDefinitionSchema = {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cvforms.dev/schema/form-definition-v1.json",
+  "title": "Consul Colect — definicao de formulario, spec_version 1",
+  "description": "Contrato entre apps/api, apps/admin e apps/mobile. Ver docs/FORM-SPEC.md.",
+  "type": "object",
+  "properties": {
+    "spec_version": {
+      "const": 1
+    },
+    "form_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "$ref": "#/$defs/localizedText"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "settings": {
+      "$ref": "#/$defs/formSettings"
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/field"
+      },
+      "minItems": 1
+    },
+    "choice_lists": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/choice"
+        },
+        "minItems": 1
+      }
+    }
+  },
+  "required": [
+    "spec_version",
+    "form_id",
+    "version",
+    "title",
+    "fields"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "localizedText": {
+      "type": "object",
+      "description": "Rotulo multilingue. A chave 'pt' e sempre obrigatoria.",
+      "properties": {
+        "pt": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "pt"
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "expression": {
+      "type": "object",
+      "description": "No de expressao em AST. Puro e determinista: nunca ha eval nem interpretacao de strings.",
+      "properties": {
+        "op": {
+          "enum": [
+            "==",
+            "!=",
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "between",
+            "and",
+            "or",
+            "not",
+            "+",
+            "-",
+            "*",
+            "/",
+            "round",
+            "matches",
+            "starts_with",
+            "ends_with",
+            "contains",
+            "length",
+            "concat",
+            "upper",
+            "lower",
+            "trim",
+            "in",
+            "selected",
+            "count",
+            "count_selected",
+            "sum",
+            "is_null",
+            "coalesce",
+            "today",
+            "now",
+            "date_diff_days",
+            "distance_m",
+            "if"
+          ]
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expressionArg"
+          }
+        }
+      },
+      "required": [
+        "op",
+        "args"
+      ],
+      "additionalProperties": false
+    },
+    "expressionArg": {
+      "description": "Literal, referencia ($self, $<id>, $..<id>), sub-expressao, ou lista.",
+      "anyOf": [
+        {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        {
+          "$ref": "#/$defs/expression"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/expressionArg"
+          }
+        }
+      ]
+    },
+    "choice": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "relevant": {
+          "$ref": "#/$defs/expression"
+        }
+      },
+      "required": [
+        "value",
+        "label"
+      ],
+      "additionalProperties": false
+    },
+    "formSettings": {
+      "type": "object",
+      "properties": {
+        "max_accuracy_m": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "allow_edit_after_submit": {
+          "type": "boolean"
+        },
+        "geometry_field": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$",
+          "description": "id do campo geopoint que alimenta records.geom"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "pt e sempre o primeiro"
+        },
+        "default_language": {
+          "type": "string"
+        },
+        "record_label": {
+          "$ref": "#/$defs/expression"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fieldCommon": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$",
+          "description": "Imutavel, gerado pelo sistema. Chave sob a qual os dados sao guardados."
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$",
+          "description": "Editavel pelo humano. Da nome a coluna nas vistas PostGIS e ao XLSForm."
+        },
+        "type": {
+          "enum": [
+            "text",
+            "note",
+            "integer",
+            "decimal",
+            "boolean",
+            "select_one",
+            "select_multiple",
+            "date",
+            "time",
+            "datetime",
+            "geopoint",
+            "geotrace",
+            "geoshape",
+            "photo",
+            "audio",
+            "file",
+            "signature",
+            "barcode",
+            "calculate",
+            "group",
+            "repeat",
+            "reference"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "hint": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "relevant": {
+          "$ref": "#/$defs/expression"
+        },
+        "constraint": {
+          "$ref": "#/$defs/expression"
+        },
+        "constraint_message": {
+          "$ref": "#/$defs/localizedText"
+        },
+        "calculation": {
+          "$ref": "#/$defs/expression"
+        },
+        "searchable": {
+          "type": "boolean"
+        },
+        "projected": {
+          "type": "boolean",
+          "default": true
+        },
+        "default": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        },
+        "appearance": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type"
+      ]
+    },
+    "field": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/fieldText"
+        },
+        {
+          "$ref": "#/$defs/fieldNote"
+        },
+        {
+          "$ref": "#/$defs/fieldInteger"
+        },
+        {
+          "$ref": "#/$defs/fieldDecimal"
+        },
+        {
+          "$ref": "#/$defs/fieldBoolean"
+        },
+        {
+          "$ref": "#/$defs/fieldSelectOne"
+        },
+        {
+          "$ref": "#/$defs/fieldSelectMultiple"
+        },
+        {
+          "$ref": "#/$defs/fieldDate"
+        },
+        {
+          "$ref": "#/$defs/fieldTime"
+        },
+        {
+          "$ref": "#/$defs/fieldDateTime"
+        },
+        {
+          "$ref": "#/$defs/fieldGeopoint"
+        },
+        {
+          "$ref": "#/$defs/fieldGeotrace"
+        },
+        {
+          "$ref": "#/$defs/fieldGeoshape"
+        },
+        {
+          "$ref": "#/$defs/fieldPhoto"
+        },
+        {
+          "$ref": "#/$defs/fieldAudio"
+        },
+        {
+          "$ref": "#/$defs/fieldFile"
+        },
+        {
+          "$ref": "#/$defs/fieldSignature"
+        },
+        {
+          "$ref": "#/$defs/fieldBarcode"
+        },
+        {
+          "$ref": "#/$defs/fieldCalculate"
+        },
+        {
+          "$ref": "#/$defs/fieldGroup"
+        },
+        {
+          "$ref": "#/$defs/fieldRepeat"
+        },
+        {
+          "$ref": "#/$defs/fieldReference"
+        }
+      ]
+    },
+    "fieldText": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_length": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "multiline": {
+              "type": "boolean"
+            },
+            "type": {
+              "const": "text"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldNote": {
+      "$comment": "Apenas apresenta texto. Nao guarda valor.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "note"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldInteger": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "integer"
+            },
+            "max": {
+              "type": "integer"
+            },
+            "type": {
+              "const": "integer"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldDecimal": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "decimals": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "type": {
+              "const": "decimal"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldBoolean": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "boolean"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldSelectOne": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "choices_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "allow_other": {
+              "type": "boolean"
+            },
+            "type": {
+              "const": "select_one"
+            }
+          },
+          "required": [
+            "choices_ref"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldSelectMultiple": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "choices_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "min_selected": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_selected": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "allow_other": {
+              "type": "boolean"
+            },
+            "type": {
+              "const": "select_multiple"
+            }
+          },
+          "required": [
+            "choices_ref"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldDate": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "date"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldTime": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "time"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldDateTime": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "datetime"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldGeopoint": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_accuracy_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "type": {
+              "const": "geopoint"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldGeotrace": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_accuracy_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "type": {
+              "const": "geotrace"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldGeoshape": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_accuracy_m": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "type": {
+              "const": "geoshape"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldPhoto": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_dimension_px": {
+              "type": "integer",
+              "minimum": 128
+            },
+            "type": {
+              "const": "photo"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldAudio": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "max_duration_s": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "type": {
+              "const": "audio"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldFile": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "accept": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "const": "file"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldSignature": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "signature"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldBarcode": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "formats": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "type": {
+              "const": "barcode"
+            }
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldCalculate": {
+      "$comment": "Campo derivado. Nunca e editavel; o valor vem sempre da expressao.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "calculation": {
+              "$ref": "#/$defs/expression"
+            },
+            "type": {
+              "const": "calculate"
+            }
+          },
+          "required": [
+            "calculation"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldGroup": {
+      "$comment": "Agrupa campos no mesmo ambito. Nao cria nivel nos dados.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/field"
+              },
+              "minItems": 1
+            },
+            "collapsed": {
+              "type": "boolean"
+            },
+            "type": {
+              "const": "group"
+            }
+          },
+          "required": [
+            "fields"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldRepeat": {
+      "$comment": "Grupo repetivel. Cria um array de objectos nos dados e uma vista-filha no PostGIS.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/field"
+              },
+              "minItems": 1
+            },
+            "min": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "instance_label": {
+              "$ref": "#/$defs/expression"
+            },
+            "type": {
+              "const": "repeat"
+            }
+          },
+          "required": [
+            "fields"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "fieldReference": {
+      "$comment": "Aponta para um registo de outro formulario. Guarda o UUID do registo alvo.",
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fieldCommon"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "target_form_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "display_fields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,62}$"
+              }
+            },
+            "filter": {
+              "$ref": "#/$defs/expression"
+            },
+            "type": {
+              "const": "reference"
+            }
+          },
+          "required": [
+            "target_form_id"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+} as const;
+
+export type FormDefinitionSchema = typeof formDefinitionSchema;

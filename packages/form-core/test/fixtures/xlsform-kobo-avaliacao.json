@@ -1,0 +1,142 @@
+{
+  "_nota": "Estrutura de linhas de um XLSForm de avaliação rápida do tipo dos que circulam no KoboToolbox: metadados no topo, grupos, cascata de escolhas, relevância e restrições. Transcrito para linhas porque o form-core não lê .xlsx — ver src/xlsform/types.ts.",
+  "survey": [
+    { "type": "start", "name": "start" },
+    { "type": "end", "name": "end" },
+    { "type": "today", "name": "today" },
+    { "type": "deviceid", "name": "deviceid" },
+    {
+      "type": "begin group",
+      "name": "grupo_identificacao",
+      "label::Portuguese (pt)": "Identificação",
+      "label::English (en)": "Identification"
+    },
+    {
+      "type": "text",
+      "name": "nome_inquiridor",
+      "label::Portuguese (pt)": "Nome do inquiridor",
+      "label::English (en)": "Enumerator name",
+      "required": "yes"
+    },
+    {
+      "type": "select_one lista_provincias",
+      "name": "provincia",
+      "label::Portuguese (pt)": "Província",
+      "label::English (en)": "Province",
+      "required": "yes"
+    },
+    {
+      "type": "text",
+      "name": "outra_provincia",
+      "label::Portuguese (pt)": "Indique a província",
+      "label::English (en)": "Specify the province",
+      "relevant": "${provincia} = 'outra'"
+    },
+    {
+      "type": "geopoint",
+      "name": "coordenadas",
+      "label::Portuguese (pt)": "Coordenadas do local",
+      "label::English (en)": "Location",
+      "required": "yes"
+    },
+    { "type": "end group", "name": "grupo_identificacao" },
+    {
+      "type": "begin group",
+      "name": "grupo_agregado",
+      "label::Portuguese (pt)": "Agregado familiar",
+      "label::English (en)": "Household"
+    },
+    {
+      "type": "integer",
+      "name": "pessoas",
+      "label::Portuguese (pt)": "Quantas pessoas vivem no agregado?",
+      "label::English (en)": "How many people live in the household?",
+      "required": "yes",
+      "constraint": ". > 0 and . < 40",
+      "constraint_message::Portuguese (pt)": "Entre 1 e 39 pessoas.",
+      "constraint_message::English (en)": "Between 1 and 39 people."
+    },
+    {
+      "type": "integer",
+      "name": "criancas",
+      "label::Portuguese (pt)": "Quantas são crianças?",
+      "label::English (en)": "How many are children?",
+      "constraint": ". <= ${pessoas}",
+      "constraint_message::Portuguese (pt)": "Não pode haver mais crianças do que pessoas.",
+      "constraint_message::English (en)": "Children cannot exceed total people."
+    },
+    {
+      "type": "select_multiple lista_servicos",
+      "name": "servicos",
+      "label::Portuguese (pt)": "Que serviços existem no local?",
+      "label::English (en)": "Which services are available?",
+      "appearance": "vertical"
+    },
+    {
+      "type": "text",
+      "name": "detalhe_agua",
+      "label::Portuguese (pt)": "Descreva a fonte de água",
+      "label::English (en)": "Describe the water source",
+      "relevant": "selected(${servicos}, 'agua')"
+    },
+    {
+      "type": "calculate",
+      "name": "percentagem_criancas",
+      "calculation": "round((${criancas} div ${pessoas}) * 100, 1)"
+    },
+    { "type": "end group", "name": "grupo_agregado" },
+    {
+      "type": "note",
+      "name": "aviso_final",
+      "label::Portuguese (pt)": "Confirme os dados antes de submeter.",
+      "label::English (en)": "Please confirm before submitting."
+    }
+  ],
+  "choices": [
+    {
+      "list_name": "lista_provincias",
+      "name": "luanda",
+      "label::Portuguese (pt)": "Luanda",
+      "label::English (en)": "Luanda"
+    },
+    {
+      "list_name": "lista_provincias",
+      "name": "bengo",
+      "label::Portuguese (pt)": "Bengo",
+      "label::English (en)": "Bengo"
+    },
+    {
+      "list_name": "lista_provincias",
+      "name": "outra",
+      "label::Portuguese (pt)": "Outra",
+      "label::English (en)": "Other"
+    },
+    {
+      "list_name": "lista_servicos",
+      "name": "agua",
+      "label::Portuguese (pt)": "Água",
+      "label::English (en)": "Water"
+    },
+    {
+      "list_name": "lista_servicos",
+      "name": "electricidade",
+      "label::Portuguese (pt)": "Electricidade",
+      "label::English (en)": "Electricity"
+    },
+    {
+      "list_name": "lista_servicos",
+      "name": "saude",
+      "label::Portuguese (pt)": "Posto de saúde",
+      "label::English (en)": "Health post"
+    }
+  ],
+  "settings": [
+    {
+      "form_title": "Avaliação rápida de necessidades",
+      "form_id": "avaliacao_rapida",
+      "version": "2026090501",
+      "default_language": "Portuguese (pt)",
+      "instance_name": "concat(${nome_inquiridor}, ' - ', ${provincia})"
+    }
+  ]
+}

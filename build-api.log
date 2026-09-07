@@ -1,0 +1,184 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.api
+#1 transferring dockerfile: 3.74kB 0.1s done
+#1 DONE 0.1s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine
+#2 ...
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:22-alpine
+#2 DONE 3.3s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 DONE 0.0s
+
+#6 [dependencias 1/8] FROM docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+#6 resolve docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 0.0s done
+#6 CACHED
+
+#5 [internal] load build context
+#5 transferring context: 36.96kB 0.1s done
+#5 DONE 0.1s
+
+#7 [compilacao 4/7] COPY apps/api ./apps/api
+#7 CACHED
+
+#8 [compilacao 3/7] COPY infra/db ./infra/db
+#8 CACHED
+
+#9 [compilacao 5/7] RUN pnpm install --frozen-lockfile --offline --filter @cvforms/api... --filter @cvforms/db...
+#9 CACHED
+
+#10 [dependencias 4/8] COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+#10 CACHED
+
+#11 [dependencias 6/8] COPY packages/form-core/package.json ./packages/form-core/
+#11 CACHED
+
+#12 [compilacao 1/7] COPY tsconfig.base.json turbo.json ./
+#12 CACHED
+
+#13 [dependencias 2/8] RUN corepack enable
+#13 CACHED
+
+#14 [dependencias 7/8] COPY infra/db/package.json ./infra/db/
+#14 CACHED
+
+#15 [dependencias 5/8] COPY apps/api/package.json ./apps/api/
+#15 CACHED
+
+#16 [dependencias 3/8] WORKDIR /repo
+#16 CACHED
+
+#17 [compilacao 2/7] COPY packages/form-core ./packages/form-core
+#17 CACHED
+
+#18 [dependencias 8/8] RUN pnpm install --frozen-lockfile --filter @cvforms/api... --filter @cvforms/db...
+#18 CACHED
+
+#19 [compilacao 6/7] RUN pnpm --filter @cvforms/form-core run build  && pnpm --filter @cvforms/db run build  && pnpm --filter @cvforms/api run build
+#19 CACHED
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 9.537  WARN  Shared workspace lockfile detected but configuration forces legacy deploy implementation.
+#20 9.724 .                                        |  WARN  A pnpm-lock.yaml file exists. The current configuration prohibits to read or write a lockfile
+#20 9.735 Packages are copied from the content-addressable store to the virtual store.
+#20 9.735   Content-addressable store is at: /root/.local/share/pnpm/store/v10
+#20 9.735   Virtual store is at:             ../entrega/node_modules/.pnpm
+#20 ...
+
+#21 [producao 2/5] RUN apk add --no-cache curl
+#21 10.39 (1/9) Installing brotli-libs (1.2.0-r1)
+#21 ...
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 10.34 Progress: resolved 1, reused 0, downloaded 0, added 0
+#20 11.76 Progress: resolved 2, reused 0, downloaded 0, added 0
+#20 12.76 Progress: resolved 7, reused 0, downloaded 0, added 0
+#20 13.84 Progress: resolved 13, reused 0, downloaded 0, added 0
+#20 14.87 Progress: resolved 20, reused 0, downloaded 0, added 0
+#20 16.18 Progress: resolved 23, reused 0, downloaded 0, added 0
+#20 17.97 Progress: resolved 25, reused 0, downloaded 0, added 0
+#20 20.07 Progress: resolved 26, reused 0, downloaded 0, added 0
+#20 20.40  WARN  Request took 10116ms: https://registry.npmjs.org/@swc%2Fcore
+#20 ...
+
+#21 [producao 2/5] RUN apk add --no-cache curl
+#21 10.64 (2/9) Installing c-ares (1.34.8-r0)
+#21 10.77 (3/9) Installing libunistring (1.4.2-r0)
+#21 11.01 (4/9) Installing libidn2 (2.3.8-r0)
+#21 11.15 (5/9) Installing nghttp2-libs (1.69.0-r0)
+#21 11.27 (6/9) Installing libpsl (0.21.5-r3)
+#21 11.49 (7/9) Installing zstd-libs (1.5.7-r2)
+#21 ...
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 21.53 Progress: resolved 27, reused 0, downloaded 0, added 0
+#20 22.57 Progress: resolved 35, reused 0, downloaded 0, added 0
+#20 23.58 Progress: resolved 74, reused 0, downloaded 0, added 0
+#20 24.58 Progress: resolved 91, reused 0, downloaded 0, added 0
+#20 25.75 Progress: resolved 97, reused 0, downloaded 0, added 0
+#20 26.76 Progress: resolved 102, reused 0, downloaded 0, added 0
+#20 27.76 Progress: resolved 122, reused 0, downloaded 0, added 0
+#20 28.81 Progress: resolved 144, reused 0, downloaded 0, added 0
+#20 29.80 Progress: resolved 171, reused 0, downloaded 0, added 0
+#20 30.86 Progress: resolved 193, reused 0, downloaded 0, added 0
+#20 31.89 Progress: resolved 226, reused 0, downloaded 0, added 0
+#20 32.99 Progress: resolved 260, reused 0, downloaded 0, added 0
+#20 33.99 Progress: resolved 306, reused 0, downloaded 0, added 0
+#20 35.01 Progress: resolved 329, reused 0, downloaded 0, added 0
+#20 36.04 Progress: resolved 371, reused 0, downloaded 0, added 0
+#20 37.05 Progress: resolved 417, reused 0, downloaded 0, added 0
+#20 38.05 Progress: resolved 425, reused 0, downloaded 0, added 0
+#20 39.05 Progress: resolved 427, reused 0, downloaded 0, added 0
+#20 ...
+
+#21 [producao 2/5] RUN apk add --no-cache curl
+#21 52.41 (8/9) Installing libcurl (8.22.0-r0)
+#21 57.70 (9/9) Installing curl (8.22.0-r0)
+#21 58.54 Executing busybox-1.37.0-r31.trigger
+#21 58.61 OK: 15.9 MiB in 27 packages
+#21 ...
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 58.93 .                                        | +111 +++++++++++
+#20 59.89 Progress: resolved 427, reused 1, downloaded 0, added 0
+#20 ...
+
+#21 [producao 2/5] RUN apk add --no-cache curl
+#21 DONE 60.4s
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 60.93 Progress: resolved 427, reused 2, downloaded 0, added 0
+#20 ...
+
+#22 [producao 3/5] WORKDIR /app
+#22 DONE 0.8s
+
+#20 [compilacao 7/7] RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+#20 62.03 Progress: resolved 427, reused 25, downloaded 0, added 0
+#20 63.01 Progress: resolved 427, reused 110, downloaded 1, added 3
+#20 64.01 Progress: resolved 427, reused 110, downloaded 1, added 10
+#20 65.01 Progress: resolved 427, reused 110, downloaded 1, added 19
+#20 66.02 Progress: resolved 427, reused 110, downloaded 1, added 38
+#20 67.02 Progress: resolved 427, reused 110, downloaded 1, added 45
+#20 68.02 Progress: resolved 427, reused 110, downloaded 1, added 55
+#20 69.02 Progress: resolved 427, reused 110, downloaded 1, added 71
+#20 70.02 Progress: resolved 427, reused 110, downloaded 1, added 101
+#20 72.66 Progress: resolved 427, reused 110, downloaded 1, added 102
+#20 73.66 Progress: resolved 427, reused 110, downloaded 1, added 108
+#20 76.12 Progress: resolved 427, reused 110, downloaded 1, added 109
+#20 106.5 Progress: resolved 427, reused 110, downloaded 1, added 110
+#20 110.1 Progress: resolved 427, reused 110, downloaded 1, added 111
+#20 112.0 Progress: resolved 427, reused 110, downloaded 1, added 111, done
+#20 DONE 114.4s
+
+#23 [producao 4/5] COPY --from=compilacao /entrega ./
+#23 DONE 5.4s
+
+#24 [producao 5/5] COPY --from=compilacao /repo/infra/db/drizzle ./node_modules/@cvforms/db/drizzle
+#24 DONE 0.3s
+
+#25 exporting to image
+#25 exporting layers
+#25 exporting layers 5.2s done
+#25 exporting manifest sha256:ec05b7250b59fb0c5bda0778fec9abad917ecc9e97c11e3134c92d8770d3fec7 0.0s done
+#25 exporting config sha256:b94d03b0059d60bfcee7312214fbab770f7e1162ef8063d4f970c76982949dce 0.0s done
+#25 exporting attestation manifest sha256:be61936ad4ae2e357cffaba271a0e19e9adacff4f07cb19fe9d8a2ce0d05bcd1 0.0s done
+#25 exporting manifest list sha256:1e2a6ba691db96da012b68375871c23b2dbe603ca6ecfb1ab82ac40bbf6809f0
+#25 exporting manifest list sha256:1e2a6ba691db96da012b68375871c23b2dbe603ca6ecfb1ab82ac40bbf6809f0 0.0s done
+#25 naming to docker.io/library/cvforms-api:teste
+#25 naming to docker.io/library/cvforms-api:teste 0.2s done
+#25 unpacking to docker.io/library/cvforms-api:teste
+#25 unpacking to docker.io/library/cvforms-api:teste 7.4s done
+#25 DONE 13.1s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/jkif47zf07wjcb2mxpgvszgn5

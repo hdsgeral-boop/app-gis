@@ -1,0 +1,138 @@
+# Ambiente de desenvolvimento completo do Consul Colect.
+#
+#   pnpm infra:up      arranca tudo
+#   pnpm db:migrate    aplica as migrações
+#   pnpm db:seed       cria a organização, o projecto e o utilizador de teste
+#
+# As senhas aqui são de desenvolvimento e estão à vista de propósito: ninguém
+# se deve enganar a pensar que este ficheiro serve para produção. Em produção
+# tudo vem do ambiente (restrição inegociável 9).
+
+name: cvforms
+
+services:
+  postgres:
+    # PostGIS 3.4 sobre Postgres 16, como na especificação §9.
+    image: postgis/postgis:16-3.4
+    container_name: cvforms-postgres
+    environment:
+      POSTGRES_USER: cvforms
+      POSTGRES_PASSWORD: cvforms
+      POSTGRES_DB: cvforms
+    # wal_level=logical é o que o PowerSync precisa para a replicação lógica.
+    #
+    # synchronous_commit=off é SÓ PARA DESENVOLVIMENTO, e a razão é concreta:
+    # em Docker Desktop sobre WSL2 o fsync é lento ao ponto de um checkpoint
+    # demorar dezenas de segundos, e a suite de testes passa o tempo à espera
+    # do disco. O que se arrisca é perder os últimos commits se a MÁQUINA
+    # cair — não se o Postgres cair, que continua a recuperar sem perder nada.
+    # Em produção isto não vai, e é por isso que está aqui e não no ficheiro
+    # de configuração da base.
+    command: >
+      postgres
+      -c wal_level=logical
+      -c max_replication_slots=10
+      -c max_wal_senders=10
+      -c shared_preload_libraries=pg_stat_statements
+      -c synchronous_commit=off
+    ports:
+      # O porto de fora é configurável porque é frequente já haver um Postgres
+      # instalado na máquina de quem desenvolve. Por omissão é o 5432 de
+      # sempre; com POSTGRES_PORT no .env, arranca ao lado sem conflito.
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cvforms -d cvforms']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: cvforms-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: cvforms
+      KC_DB_PASSWORD: cvforms
+      KC_HTTP_ENABLED: 'true'
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HEALTH_ENABLED: 'true'
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  powersync:
+    # Open Edition, auto-hospedado (especificação §9).
+    image: journeyapps/powersync-service:latest
+    container_name: cvforms-powersync
+    command: ['start', '-r', 'unified']
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      # O sslmode vai na própria URI: o bloco `storage` do powersync.yaml não
+      # herda o da réplica, e sem isto a ligação de armazenamento falha com um
+      # «postgres query failed» que não diz nada.
+      PS_DATABASE_URI: postgres://cvforms:cvforms@postgres:5432/cvforms?sslmode=disable
+      PS_JWKS_URL: http://keycloak:8080/realms/cvforms/protocol/openid-connect/certs
+      PS_JWT_AUDIENCE: cvforms-mobile
+      PS_PORT: '8090'
+      # Só protege as rotas administrativas do próprio serviço. Em produção
+      # vem do ambiente, como tudo o resto (restrição inegociável 9).
+      PS_ADMIN_TOKEN: powersync-dev-token
+    ports:
+      - '8090:8090'
+    volumes:
+      # A configuração vive em infra/powersync, e este ficheiro em
+      # infra/docker: o caminho relativo sobe um nível. Sem isto o serviço
+      # arranca, não encontra o /config/powersync.yaml e sai com código 150 —
+      # e o `docker compose up` diz «Started» na mesma.
+      - ../powersync:/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  minio:
+    image: minio/minio:latest
+    container_name: cvforms-minio
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: cvforms
+      MINIO_ROOT_PASSWORD: cvforms-dev-secret
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Cria o balde dos anexos e vai-se embora.
+  minio-init:
+    image: minio/mc:latest
+    container_name: cvforms-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 cvforms cvforms-dev-secret &&
+      mc mb --ignore-existing local/cvforms-attachments &&
+      mc anonymous set none local/cvforms-attachments &&
+      echo 'balde cvforms-attachments pronto'
+      "
+
+volumes:
+  postgres-data:
+  minio-data:

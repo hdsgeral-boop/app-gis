@@ -1,0 +1,898 @@
+/*
+ * As cores da marca saem do logotipo da empresa, medidas no proprio ficheiro:
+ * vermelho #ce1b2e, amarelo #fcc719 e preto. Sao as tres, e mais nenhuma.
+ *
+ * O VERMELHO NAO E A COR DOS BOTOES. Numa aplicacao de trabalho, vermelho quer
+ * dizer «cuidado» — e a cor de apagar e de um erro. Se for tambem a cor de
+ * «guardar», deixa de querer dizer alguma coisa. A marca usa-se no logotipo,
+ * nos detalhes e no que esta activo; o azul continua a ser o que se toca.
+ */
+:root {
+  --fundo: #ffffff;
+  --superficie: #ffffff;
+  --texto: #17191c;
+  --suave: #5b6470;
+  --borda: #e3e6ea;
+  --realce: #10508a;
+  --marca: #ce1b2e;
+  --marca-2: #fcc719;
+  --sombra: 0 1px 2px rgb(0 0 0 / 6%), 0 8px 24px rgb(0 0 0 / 4%);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #0e1116;
+    --superficie: #161b22;
+    --texto: #e9ecef;
+    --suave: #9aa3ae;
+    --borda: #262a30;
+    --realce: #6cb0f0;
+    /* O vermelho da marca escurece mal sobre fundo escuro; sobe-se a
+       luminosidade sem lhe mudar o tom. */
+    --marca: #f2495c;
+    --sombra: 0 1px 2px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 30%);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font:
+    15px/1.55 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem;
+}
+
+.suave {
+  color: var(--suave);
+}
+
+.cartao {
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.botao {
+  display: inline-block;
+  border: 1px solid var(--realce);
+  background: var(--realce);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.botao.secundario {
+  background: transparent;
+  color: var(--realce);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1.25rem;
+  margin: 0;
+}
+
+dt {
+  color: var(--suave);
+}
+
+dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.75rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+th {
+  color: var(--suave);
+  font-weight: 500;
+}
+
+/* ── Construtor de formulários (F2.15 a F2.18) ───────────────────────────── */
+
+main.largo {
+  max-width: 100rem;
+}
+
+.construtor {
+  display: grid;
+  grid-template-columns: 22rem minmax(0, 1fr) 26rem;
+  grid-template-areas: 'arvore centro direita' 'barra barra barra';
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+  align-items: start;
+}
+
+/* Num ecrã estreito os três painéis empilham. O construtor não é para usar
+   num telefone, mas um portátil de 13 polegadas é normal em Luanda. */
+@media (max-width: 90rem) {
+  .construtor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'arvore' 'centro' 'direita' 'barra';
+  }
+}
+
+.construtor > .arvore {
+  grid-area: arvore;
+}
+.construtor > .centro {
+  grid-area: centro;
+}
+.construtor > .direita {
+  grid-area: direita;
+}
+.construtor > .barra {
+  grid-area: barra;
+}
+
+.construtor > aside,
+.construtor > section {
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.construtor h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+.construtor h3 {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.4rem;
+}
+.construtor h4 {
+  font-size: 0.9rem;
+  margin: 0 0 0.4rem;
+}
+
+.lista-de-campos,
+.lista-de-campos ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.75rem;
+}
+.lista-de-campos > li > .no {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 6px;
+  padding: 0.15rem 0.25rem;
+}
+.no.activo {
+  background: color-mix(in srgb, var(--realce) 14%, transparent);
+}
+.no .nome {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  padding: 0.35rem 0.25rem;
+  cursor: pointer;
+  min-height: 2rem;
+}
+.no .accoes {
+  display: flex;
+  gap: 0.15rem;
+  opacity: 0.55;
+}
+.no:hover .accoes,
+.no.activo .accoes {
+  opacity: 1;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.75rem 0;
+}
+.campo .rotulo {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.campo input,
+.campo select,
+.campo textarea,
+.acrescentar input,
+.acrescentar select {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo);
+  color: var(--texto);
+  min-height: 2.25rem;
+  width: 100%;
+}
+.linha {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.linha.entre {
+  justify-content: space-between;
+}
+.expandir {
+  flex: 1;
+}
+.pequeno {
+  font-size: 0.82rem;
+}
+.identificador {
+  font-family: ui-monospace, monospace;
+  background: color-mix(in srgb, var(--texto) 8%, transparent);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  align-self: flex-start;
+}
+
+.bloco {
+  border-top: 1px solid var(--borda);
+  padding-top: 0.75rem;
+  margin-top: 1rem;
+}
+
+.botao-suave {
+  display: inline-block;
+  border: 1px solid var(--borda);
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+  min-height: 2.25rem;
+  text-decoration: none;
+}
+.botao-icone {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  min-height: 1.8rem;
+}
+.perigo {
+  color: #b3261e;
+  border-color: #b3261e;
+}
+button.botao.perigo {
+  background: #b3261e;
+  color: #fff;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.expressao {
+  border-left: 2px solid var(--borda);
+  padding-left: 0.75rem;
+}
+.no-de-operador {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.argumentos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-left: 0.75rem;
+  border-left: 1px dashed var(--borda);
+}
+.argumento {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+.no-de-valor {
+  display: flex;
+  gap: 0.4rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.no-de-valor select,
+.no-de-valor input {
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo);
+  color: var(--texto);
+  min-height: 2.25rem;
+}
+
+table.opcoes {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.opcoes th {
+  text-align: left;
+  font-size: 0.8rem;
+  color: var(--suave);
+  font-weight: 500;
+}
+table.opcoes input {
+  width: 100%;
+  font: inherit;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.previsualizacao .telefone {
+  border: 1px solid var(--borda);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.previsualizacao .abas {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--borda);
+  overflow-x: auto;
+}
+.previsualizacao .aba {
+  border: 0;
+  background: color-mix(in srgb, var(--texto) 7%, transparent);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.previsualizacao .aba.activa {
+  background: var(--realce);
+  color: #fff;
+}
+.previsualizacao .ecra {
+  padding: 0.75rem 1rem;
+  max-height: 32rem;
+  overflow-y: auto;
+}
+.previsualizacao .rodape-do-telefone {
+  border-top: 1px solid var(--borda);
+  padding: 0.6rem;
+}
+.previsualizacao fieldset.grupo {
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
+.previsualizacao .instancia {
+  border-top: 1px dashed var(--borda);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+.previsualizacao .nota {
+  background: color-mix(in srgb, #f5b800 18%, transparent);
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+}
+.previsualizacao .calculado {
+  font-family: ui-monospace, monospace;
+}
+.previsualizacao .opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.previsualizacao .opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.dados pre {
+  font-size: 0.78rem;
+  overflow-x: auto;
+  background: color-mix(in srgb, var(--texto) 6%, transparent);
+  padding: 0.6rem;
+  border-radius: 6px;
+}
+
+.construtor > .barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--fundo);
+}
+.problemas ul {
+  margin: 0.4rem 0 0;
+  padding-left: 1.2rem;
+  max-height: 10rem;
+  overflow-y: auto;
+}
+.problemas code {
+  font-size: 0.78rem;
+  color: var(--suave);
+}
+.erro {
+  color: #b3261e;
+}
+.aviso {
+  color: #8a5a00;
+}
+.estado {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+}
+
+.alteracoes {
+  grid-area: barra;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+.alteracoes li.incompativel {
+  color: #b3261e;
+}
+.alteracoes .confirmacao {
+  border: 1px solid #b3261e;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+}
+
+table.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+table.tabela th,
+table.tabela td {
+  text-align: left;
+  padding: 0.5rem 0.4rem;
+  border-bottom: 1px solid var(--borda);
+}
+tr.arquivado {
+  opacity: 0.55;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   O painel: menu lateral fixo e conteúdo à direita.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.painel {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  min-height: 100vh;
+}
+
+/* Sem isto, uma tabela larga empurra o menu para fora do ecrã. */
+.painel-conteudo {
+  min-width: 0;
+}
+
+.painel-conteudo main {
+  max-width: 68rem;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.menu {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem 0.9rem;
+  background: var(--superficie);
+  border-right: 1px solid var(--borda);
+}
+
+.menu-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.4rem 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+.menu-marca img {
+  flex: none;
+}
+.menu-marca span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.menu-marca strong {
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+.menu-marca small {
+  font-size: 0.72rem;
+  color: var(--suave);
+}
+
+.menu-seccao h2 {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--suave);
+  margin: 0 0 0.4rem 0.55rem;
+}
+.menu-seccao ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Uma barra à esquerda marca o que está activo. Um fundo cheio numa lista de
+   sete itens faz o olho saltar para o fundo em vez de para o texto. */
+.menu-seccao a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--texto);
+  border-left: 3px solid transparent;
+}
+.menu-seccao a:hover {
+  background: color-mix(in srgb, var(--realce) 7%, transparent);
+}
+.menu-seccao a.activo {
+  background: color-mix(in srgb, var(--realce) 10%, transparent);
+  border-left-color: var(--marca);
+  font-weight: 600;
+}
+.menu-seccao a svg {
+  flex: none;
+  color: var(--suave);
+}
+.menu-seccao a.activo svg {
+  color: var(--realce);
+}
+.menu-seccao a span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.menu-seccao a small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-rodape {
+  margin-top: auto;
+  border-top: 1px solid var(--borda);
+  padding-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.menu-utilizador {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.55rem;
+}
+.menu-inicial {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #fff;
+  background: var(--marca);
+}
+.menu-utilizador span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.menu-utilizador strong {
+  font-size: 0.85rem;
+}
+.menu-utilizador small {
+  font-size: 0.72rem;
+  color: var(--suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-sair {
+  font-size: 0.82rem;
+  color: var(--suave);
+  text-decoration: none;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+}
+.menu-sair:hover {
+  background: color-mix(in srgb, var(--marca) 10%, transparent);
+  color: var(--marca);
+}
+
+.menu-alternar,
+.menu-fundo {
+  display: none;
+}
+
+/* Num tablet no carro, o menu sai da frente. */
+@media (max-width: 860px) {
+  .painel {
+    grid-template-columns: 1fr;
+  }
+  .menu {
+    position: fixed;
+    z-index: 20;
+    width: 264px;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+  }
+  .menu-aberto {
+    transform: none;
+  }
+  .menu-alternar {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    z-index: 21;
+    top: 0.75rem;
+    left: 0.75rem;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    background: var(--superficie);
+    color: var(--texto);
+    cursor: pointer;
+  }
+  .menu-fundo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    border: 0;
+    background: rgb(0 0 0 / 35%);
+  }
+  .painel-conteudo main {
+    padding: 4.5rem 1.25rem 3rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ecrã de entrada.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.entrada {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/*
+ * O fundo animado.
+ *
+ * Três manchas com as cores da marca a deslizar devagar, em ciclo infinito.
+ * São gradientes e transformações: o compositor do browser trata delas na GPU
+ * e não custam CPU nenhum, ao contrário de um vídeo ou de um canvas a
+ * desenhar a 60 fps. Num portátil de escritório isso é a diferença entre uma
+ * página bonita e uma ventoinha a trabalhar.
+ *
+ * `prefers-reduced-motion` PÁRA TUDO. Movimento contínuo dá enjoo a algumas
+ * pessoas, e uma página de entrada não é sítio para isso.
+ */
+.entrada-fundo {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  filter: blur(70px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.entrada-fundo span {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+.entrada-fundo span:nth-child(1) {
+  width: 46vmax;
+  height: 46vmax;
+  left: 4%;
+  top: 6%;
+  background: radial-gradient(circle at 35% 35%, var(--marca), transparent 68%);
+  animation: derivar-a 26s ease-in-out infinite;
+}
+.entrada-fundo span:nth-child(2) {
+  width: 38vmax;
+  height: 38vmax;
+  right: 6%;
+  top: 18%;
+  background: radial-gradient(circle at 60% 40%, var(--marca-2), transparent 66%);
+  animation: derivar-b 32s ease-in-out infinite;
+}
+.entrada-fundo span:nth-child(3) {
+  width: 42vmax;
+  height: 42vmax;
+  left: 26%;
+  bottom: 2%;
+  background: radial-gradient(circle at 45% 55%, var(--realce), transparent 70%);
+  animation: derivar-c 38s ease-in-out infinite;
+}
+
+/* Cada uma volta ao ponto de partida: sem isso, o ciclo dá um salto visível a
+   cada repetição, e é precisamente o salto que se nota. */
+@keyframes derivar-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(9vw, 7vh, 0) scale(1.12);
+  }
+  66% {
+    transform: translate3d(-6vw, 11vh, 0) scale(0.94);
+  }
+}
+@keyframes derivar-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  40% {
+    transform: translate3d(-11vw, 9vh, 0) scale(1.16);
+  }
+  70% {
+    transform: translate3d(5vw, -7vh, 0) scale(0.9);
+  }
+}
+@keyframes derivar-c {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8vw, -10vh, 0) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-fundo span {
+    animation: none;
+  }
+}
+
+.entrada-cartao {
+  position: relative;
+  z-index: 1;
+  width: min(28rem, 100%);
+  background: color-mix(in srgb, var(--superficie) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  box-shadow: var(--sombra);
+  padding: 2.25rem 2rem;
+  text-align: center;
+}
+.entrada-cartao img {
+  margin: 0 auto 1rem;
+}
+.entrada-cartao h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.35rem;
+}
+.entrada-cartao .botao {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+}
+.entrada-nota {
+  margin-top: 1.25rem;
+  font-size: 0.8rem;
+  color: var(--suave);
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Peças partilhadas
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cabecalho-pagina {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+/* Uma fita com as três cores do logótipo. É onde a marca aparece dentro das
+   páginas, sem pintar botões que não são da marca. */
+.marca-fita {
+  height: 3px;
+  width: 56px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--marca) 0 33%, var(--marca-2) 33% 66%, #111 66%);
+  margin-bottom: 0.9rem;
+}
+
+.cracha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  color: var(--suave);
+}
+.cracha-alerta {
+  border-color: color-mix(in srgb, var(--marca) 40%, transparent);
+  color: var(--marca);
+}
+
+.vazio-tabela {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--suave);
+}

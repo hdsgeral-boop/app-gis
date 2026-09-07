@@ -1,0 +1,119 @@
+{
+  "realm": "cvforms",
+  "enabled": true,
+  "displayName": "Consul Colect",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 2592000,
+  "ssoSessionMaxLifespan": 5184000,
+  "offlineSessionIdleTimeout": 5184000,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Administra a organização, publica formulários, atribui acessos"
+      },
+      { "name": "gestor", "description": "Cria formulários e valida registos do seu projecto" },
+      { "name": "tecnico", "description": "Recolhe dados no terreno" },
+      { "name": "leitor", "description": "Só consulta e exporta" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "cvforms-admin",
+      "name": "Painel de administração",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "org_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "cvforms-mobile",
+      "name": "App móvel",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "use.refresh.tokens": "true",
+        "client_credentials.use_refresh_token": "false"
+      },
+      "redirectUris": ["cvforms://auth/*", "http://localhost:8081/*"],
+      "webOrigins": ["*"],
+      "protocolMappers": [
+        {
+          "name": "org_id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "org_id",
+            "claim.name": "org_id",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-mobile",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "cvforms-mobile",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "cvforms-api",
+      "name": "API",
+      "enabled": true,
+      "bearerOnly": true,
+      "publicClient": false
+    }
+  ],
+  "users": [
+    {
+      "username": "admin.demo",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin.demo@exemplo.local",
+      "firstName": "Admin",
+      "lastName": "Demo",
+      "attributes": { "org_id": ["0192f400-0000-7000-8000-000000000001"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "tecnico.demo",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "tecnico.demo@exemplo.local",
+      "firstName": "Técnico",
+      "lastName": "Demo",
+      "attributes": { "org_id": ["0192f400-0000-7000-8000-000000000001"] },
+      "credentials": [{ "type": "password", "value": "demo", "temporary": false }],
+      "realmRoles": ["tecnico"]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+node_modules
+dist
+.next
+.expo
+pnpm-lock.yaml
+infra/db/drizzle/**
+
+# Gerado a partir do .ts pela `schema:emit`. Formatá-lo dessincroniza-o da fonte.
+packages/form-core/src/schema/form-definition.schema.json
+packages/form-core/src/schema/form-definition.schema.ts
+
+# O Caddyfile tem sintaxe própria; o prettier não a conhece e estragava-a.
+infra/caddy/Caddyfile

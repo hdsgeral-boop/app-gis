@@ -1,0 +1,37 @@
+node_modules/
+dist/
+build/
+.next/
+.expo/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# ambiente — NUNCA commitar segredos (restrição inegociável 9)
+.env
+.env.*
+!.env.example
+!.env.producao.example
+*.pem
+*.key
+*.keystore
+*.jks
+
+# dados locais
+*.sqlite
+*.sqlite3
+*.db
+infra/docker/volumes/
+tmp/
+.DS_Store
+
+# Next.js
+next-env.d.ts
+
+# Expo
+apps/mobile/dist/
+apps/mobile/android/
+apps/mobile/ios/
+
+# Os APK são grandes e gerados; distribuem-se por link, não pelo repositório.
+distribuicao/*.apk

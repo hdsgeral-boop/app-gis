@@ -1,0 +1,54 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Painel do CVForms, para produção.
+#
+# Usa o `output: standalone` do Next: a compilação produz um servidor com só
+# as dependências que são mesmo importadas. Sem isso, a imagem levaria o
+# `node_modules` inteiro do monorepo — mais de 1 GB para servir meia dúzia de
+# páginas.
+#
+# ATENÇÃO ÀS VARIÁVEIS. O `NEXTAUTH_SECRET` e o `API_URL` são lidos em tempo de
+# EXECUÇÃO (é tudo servidor), e por isso NÃO entram na imagem. Só o que
+# começa por `NEXT_PUBLIC_` é embutido na compilação, e não há nenhum aqui de
+# propósito: o token de acesso nunca chega ao browser (restrição inegociável
+# 9).
+# ═══════════════════════════════════════════════════════════════════════════
+
+FROM node:22-alpine AS dependencias
+RUN corepack enable
+WORKDIR /repo
+
+# Ver o comentário no Dockerfile.api: os valores por omissão do pnpm desistem
+# depressa de mais numa ligação que deixa cair transferências a meio.
+ENV npm_config_fetch_retries=8     npm_config_fetch_retry_maxtimeout=180000     npm_config_fetch_timeout=600000
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+COPY apps/admin/package.json ./apps/admin/
+COPY packages/form-core/package.json ./packages/form-core/
+RUN pnpm install --frozen-lockfile --filter @cvforms/admin...
+
+FROM dependencias AS compilacao
+COPY tsconfig.base.json turbo.json ./
+COPY packages/form-core ./packages/form-core
+COPY apps/admin ./apps/admin
+# Ver o comentário no Dockerfile.api: o `COPY` desfaz as ligações do workspace.
+RUN pnpm install --frozen-lockfile --offline --filter @cvforms/admin...
+RUN pnpm --filter @cvforms/form-core run build \
+ && pnpm --filter @cvforms/admin run build
+
+FROM node:22-alpine AS producao
+RUN apk add --no-cache curl
+WORKDIR /repo
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+
+# O `standalone` traz o seu próprio `node_modules` mínimo e um `server.js`.
+COPY --from=compilacao /repo/apps/admin/.next/standalone ./
+COPY --from=compilacao /repo/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=compilacao /repo/apps/admin/public ./apps/admin/public
+
+USER node
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD curl -fsS http://localhost:3000/entrar || exit 1
+
+CMD ["node", "apps/admin/server.js"]

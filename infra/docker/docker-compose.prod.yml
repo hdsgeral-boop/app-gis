@@ -1,0 +1,224 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Consul Colect em produção, num servidor só.
+#
+# PARA QUEM É ISTO. Uma organização com dezenas de técnicos, um VPS de 4 a 8 GB,
+# e uma a três pessoas a manter tudo. Não é Kubernetes e não precisa de ser:
+# o que aqui está corre num Hetzner de 20 € por mês e aguenta muito mais do que
+# a plataforma vai ter no primeiro ano.
+#
+# O QUE MUDA EM RELAÇÃO AO `docker-compose.yml` DE DESENVOLVIMENTO:
+#
+#   - **nada é exposto ao mundo directamente.** Só o Caddy tem portas
+#     publicadas; o Postgres, o MinIO e o PowerSync só existem dentro da rede
+#     do compose. Um Postgres com a porta 5432 aberta na Internet é encontrado
+#     por um scanner em menos de uma hora.
+#   - **nenhuma senha está escrita aqui.** Tudo vem do `.env.producao`, que não
+#     entra no repositório (restrição inegociável 9). O compose recusa arrancar
+#     se faltar alguma: é o `${VARIAVEL:?mensagem}`.
+#   - **a API corre com o papel `cvforms_app`**, que não é dono das tabelas e
+#     não tem BYPASSRLS. Se correr como dono, o isolamento entre organizações
+#     desaparece sem erro nenhum (ADR-0010).
+#   - **HTTPS a sério**, pelo Caddy, com certificados automáticos.
+#
+# COMO SE USA:
+#   cp .env.producao.example .env.producao   # e preenche
+#   docker compose -f infra/docker/docker-compose.prod.yml --env-file .env.producao up -d
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: cvforms
+
+services:
+  # ── Entrada: o único serviço com portas abertas ─────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      DOMINIO_PAINEL: ${DOMINIO_PAINEL:?falta DOMINIO_PAINEL}
+      DOMINIO_API: ${DOMINIO_API:?falta DOMINIO_API}
+      DOMINIO_SYNC: ${DOMINIO_SYNC:?falta DOMINIO_SYNC}
+      DOMINIO_AUTH: ${DOMINIO_AUTH:?falta DOMINIO_AUTH}
+      DOMINIO_FICHEIROS: ${DOMINIO_FICHEIROS:?falta DOMINIO_FICHEIROS}
+    depends_on: [api, painel, keycloak, powersync, minio]
+
+  # ── Base de dados ───────────────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cvforms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cvforms}
+    # `wal_level=logical` é o que o PowerSync precisa para replicar. Os slots
+    # ficam a segurar WAL quando o consumidor pára — daí o /health/replicacao.
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=8
+      - -c
+      - max_wal_senders=8
+      # Um tecto para o WAL não encher o disco se um slot ficar parado. O
+      # Postgres começa a descartar slots atrasados em vez de morrer.
+      - -c
+      - max_slot_wal_keep_size=8GB
+    volumes:
+      - postgres_dados:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cvforms} -d ${POSTGRES_DB:-cvforms}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── API ─────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: '4000'
+      # O papel restrito, NUNCA o dono das tabelas (ADR-0010).
+      DATABASE_URL: postgres://${APP_DB_USER:-cvforms_app}:${APP_DB_PASSWORD:?falta APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-cvforms}
+      DATABASE_APP_ROLE: ${APP_DB_USER:-cvforms_app}
+      KEYCLOAK_ISSUER: https://${DOMINIO_AUTH}/realms/cvforms
+      KEYCLOAK_AUDIENCE: cvforms-mobile,cvforms-admin,cvforms-api
+      CORS_ORIGINS: https://${DOMINIO_PAINEL}
+      POWERSYNC_URL: http://powersync:8090
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: https://${DOMINIO_FICHEIROS}
+      S3_BUCKET: ${S3_BUCKET:-cvforms-anexos}
+      S3_ACCESS_KEY_ID: ${MINIO_ROOT_USER:?falta MINIO_ROOT_USER}
+      S3_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?falta MINIO_ROOT_PASSWORD}
+      S3_FORCE_PATH_STYLE: 'true'
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # ── Painel ──────────────────────────────────────────────────────────────
+  painel:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.admin
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Fala com a API por dentro da rede: não passa pela Internet nem pelo
+      # Caddy, e por isso não paga TLS nem latência.
+      API_URL: http://api:4000
+      NEXTAUTH_URL: https://${DOMINIO_PAINEL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?falta NEXTAUTH_SECRET}
+      KEYCLOAK_ISSUER: https://${DOMINIO_AUTH}/realms/cvforms
+      KEYCLOAK_CLIENT_ID: cvforms-admin
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET:?falta KEYCLOAK_ADMIN_CLIENT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    depends_on: [api]
+
+  # ── Identidade ──────────────────────────────────────────────────────────
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    restart: unless-stopped
+    command: ['start', '--optimized', '--import-realm']
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: ${POSTGRES_USER:-cvforms}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_HOSTNAME: https://${DOMINIO_AUTH}
+      KC_HTTP_ENABLED: 'true'
+      KC_PROXY_HEADERS: xforwarded
+      KC_HEALTH_ENABLED: 'true'
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:?falta KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?falta KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ../keycloak:/opt/keycloak/data/import:ro
+      - keycloak_dados:/opt/keycloak/data
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # ── Sincronização ───────────────────────────────────────────────────────
+  powersync:
+    image: journeyapps/powersync-service:latest
+    restart: unless-stopped
+    command: ['start', '-r', 'unified']
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/powersync.yaml
+      # O sslmode vai na própria URI: o bloco `storage` não herda o da réplica.
+      PS_DATABASE_URI: postgres://${POSTGRES_USER:-cvforms}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cvforms}?sslmode=disable
+      PS_JWKS_URL: http://keycloak:8080/realms/cvforms/protocol/openid-connect/certs
+      PS_JWT_AUDIENCE: cvforms-mobile
+      PS_PORT: '8090'
+      PS_ADMIN_TOKEN: ${POWERSYNC_ADMIN_TOKEN:?falta POWERSYNC_ADMIN_TOKEN}
+    volumes:
+      - ../powersync:/config:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  # ── Anexos e mosaicos ───────────────────────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER: 'off'
+    volumes:
+      - minio_dados:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # Cria os baldes ao primeiro arranque e sai. Sem isto, o primeiro upload de
+  # um anexo falha com um 404 que parece um erro de permissões.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD &&
+      mc mb --ignore-existing local/$$S3_BUCKET &&
+      mc mb --ignore-existing local/$$S3_BUCKET_MAPAS &&
+      mc anonymous set none local/$$S3_BUCKET &&
+      mc anonymous set none local/$$S3_BUCKET_MAPAS &&
+      echo 'baldes prontos'
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      S3_BUCKET: ${S3_BUCKET:-cvforms-anexos}
+      S3_BUCKET_MAPAS: ${S3_BUCKET_MAPAS:-cvforms-mapas}
+
+  # ── Migrações: corre uma vez a cada deploy, e sai ───────────────────────
+  migracoes:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    restart: 'no'
+    # Como DONO das tabelas, e não como `cvforms_app`: as migrações criam
+    # tabelas, vistas e políticas, e o papel da aplicação não pode fazer isso.
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-cvforms}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-cvforms}
+    command: ['node', 'node_modules/@cvforms/db/dist/migrate.js']
+    depends_on:
+      postgres: { condition: service_healthy }
+
+volumes:
+  postgres_dados:
+  minio_dados:
+  keycloak_dados:
+  caddy_data:
+  caddy_config:

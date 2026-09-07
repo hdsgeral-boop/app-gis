@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "Consul Colect",
+    "slug": "consul-colect",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "consulcolect",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "ao.consulcolect.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icone-adaptativo.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "ao.consulcolect.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "A localização é usada para georreferenciar os registos recolhidos no terreno.",
+        "NSCameraUsageDescription": "A câmara é usada para anexar fotografias aos registos."
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-dev-client",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "A localização é usada para georreferenciar os registos recolhidos no terreno."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "As fotografias são anexadas aos registos recolhidos.",
+          "cameraPermission": "A câmara é usada para fotografar o que se está a registar."
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      "expo-document-picker"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "icon": "./assets/icone.png",
+    "splash": {
+      "image": "./assets/arranque.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "dark": {
+        "backgroundColor": "#0b1116"
+      }
+    }
+  }
+}

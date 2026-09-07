@@ -1,0 +1,109 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Regras de sincronização do Consul Colect.
+#
+# ESCRITAS UMA VEZ. Publicar um formulário novo NÃO mexe neste ficheiro — é
+# essa a razão pela qual a especificação rejeitou o DDL dinâmico (§3, opção A):
+# uma tabela por formulário obrigaria a regenerar e redistribuir estas regras
+# a cada publicação.
+#
+# Descida (§10): os buckets derivam de `form_access`, que é a materialização de
+# «quem vê o quê» — atribuições directas, por equipa e por papel, já resolvidas
+# (migração 0003). Um técnico recebe as definições dos formulários que lhe
+# foram atribuídos e os registos do seu âmbito. Mais nada — nem sequer a
+# definição de um formulário que não lhe foi atribuído.
+#
+# O QUE ESTA LINGUAGEM NÃO ACEITA, e que custou uma tarde a descobrir:
+#   - aliases de tabela nas parameter queries (`FROM form_access fa`);
+#   - subconsultas em qualquer sítio, incluindo `IN (SELECT ...)`;
+#   - junções entre tabelas;
+#   - data queries que não cubram TODOS os parâmetros do seu bucket;
+#   - tabelas sem uma coluna `id`.
+# É por isso que `form_access` existe, e é por isso que `record_revisions` e
+# `attachments` carregam um `form_id` redundante, mantido por trigger. Se
+# tentares reescrever isto com SQL normal, o serviço arranca, recusa as regras
+# e continua a responder — a única pista é uma linha de log.
+# ═══════════════════════════════════════════════════════════════════════════
+
+bucket_definitions:
+  # ── Metadados da organização do utilizador ──────────────────────────────
+  # Pequeno, muda pouco, e a app precisa dele para mostrar nomes em vez de
+  # UUIDs sem fazer uma chamada HTTP.
+  organizacao:
+    parameters: SELECT (request.jwt() ->> 'org_id') AS org_id
+    data:
+      - SELECT id, key, name FROM organizations WHERE id = bucket.org_id
+      - SELECT id, org_id, key, name FROM projects WHERE org_id = bucket.org_id
+      - SELECT id, org_id, subject, username, display_name FROM users WHERE org_id = bucket.org_id
+
+  # ── Definições dos formulários atribuídos ao utilizador ─────────────────
+  # É a atribuição que define o bucket, e não o formulário: quem perde o
+  # acesso deixa de receber o bucket.
+  # As permissões efectivas do próprio utilizador. Bucket separado porque cada
+  # data query tem de cobrir TODOS os parâmetros do seu bucket, e este é o
+  # único que depende do utilizador e não do formulário.
+  permissoes:
+    parameters: SELECT id AS user_id FROM users WHERE id = request.user_id()
+    data:
+      - SELECT id, user_id, form_id, can_read, can_create, can_edit_own, can_edit_all, can_delete
+        FROM form_access WHERE user_id = bucket.user_id
+      - SELECT id, user_id, form_id, scope_value FROM form_access_scopes WHERE user_id = bucket.user_id
+
+  formularios_atribuidos:
+    parameters: SELECT form_id FROM form_access WHERE user_id = request.user_id() AND can_read = true
+    data:
+      - SELECT id, org_id, project_id, key, title, current_version, archived_at
+        FROM forms WHERE id = bucket.form_id
+      # Todas as versões publicadas, não só a corrente: um registo criado com a
+      # versão 3 tem de continuar a abrir com a versão 3 depois de sair a 4
+      # (ESPECIFICACAO §10).
+      - SELECT id, form_id, version, definition, hash, published_at
+        FROM form_versions WHERE form_id = bucket.form_id
+
+  # ── Registos do âmbito do utilizador ────────────────────────────────────
+  # Separado das definições de propósito: as definições são pequenas e
+  # estáveis, os registos são grandes e mexem sempre. Buckets separados
+  # significam que publicar uma versão não obriga a app a voltar a descarregar
+  # os registos.
+  registos_atribuidos:
+    parameters: SELECT form_id FROM form_access WHERE user_id = request.user_id() AND can_read = true AND scope_values IS NULL
+    data:
+      # Os tombstones vêm juntos (deleted_at não é filtrado): a app tem de
+      # saber que um registo foi apagado, senão fica com ele para sempre.
+      - SELECT id, org_id, project_id, form_id, form_version_id,
+        current_revision_id, status, created_by,
+        client_created_at, created_at, updated_at, deleted_at
+        FROM records WHERE form_id = bucket.form_id
+      # O `form_id` aqui é redundante — deriva do registo — e existe só porque
+      # esta linguagem não tem subconsultas. É mantido por trigger.
+      - SELECT id, record_id, form_id, revision_no, form_version_id, data, author_id,
+        device_id, base_revision_id, client_created_at, server_received_at
+        FROM record_revisions WHERE form_id = bucket.form_id
+      - SELECT id, record_id, form_id, revision_id, field_id, mime_type, hash, bytes,
+        upload_state, storage_key
+        FROM attachments WHERE form_id = bucket.form_id
+
+  # ── Registos de quem tem filtro de âmbito (F6.4) ────────────────────────
+  # Bucket separado, e não um `OR` no de cima, porque uma data query tem de
+  # cobrir TODOS os parâmetros do seu bucket: com `scope_value` no parâmetro,
+  # todas as consultas têm de o filtrar, e quem não tem filtro não teria por
+  # onde entrar.
+  #
+  # `form_access_scopes` tem uma linha por valor permitido porque as parameter
+  # queries não percorrem arrays — a mesma razão pela qual `form_access`
+  # existe. Um técnico com dois municípios recebe dois buckets.
+  #
+  # O invariante: `records.scope_value` é copiado da revisão corrente, logo se
+  # o registo entra no bucket, a sua revisão corrente entra também.
+  registos_por_ambito:
+    parameters: SELECT form_id, scope_value FROM form_access_scopes WHERE user_id = request.user_id()
+    data:
+      - SELECT id, org_id, project_id, form_id, form_version_id,
+        current_revision_id, status, created_by,
+        client_created_at, created_at, updated_at, deleted_at
+        FROM records WHERE form_id = bucket.form_id AND scope_value = bucket.scope_value
+      - SELECT id, record_id, form_id, revision_no, form_version_id, data, author_id,
+        device_id, base_revision_id, client_created_at, server_received_at
+        FROM record_revisions WHERE form_id = bucket.form_id AND scope_value = bucket.scope_value
+      - SELECT id, record_id, form_id, revision_id, field_id, mime_type, hash, bytes,
+        upload_state, storage_key
+        FROM attachments WHERE form_id = bucket.form_id AND scope_value = bucket.scope_value

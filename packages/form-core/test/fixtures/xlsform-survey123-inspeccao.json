@@ -1,0 +1,63 @@
+{
+  "_nota": "XLSForm no estilo do que o ArcGIS Survey123 Connect gera: aparências próprias, hidden, acknowledge, ficheiros e assinatura. Serve para testar os tipos que não têm correspondência exacta.",
+  "survey": [
+    { "type": "start", "name": "start" },
+    { "type": "end", "name": "end" },
+    { "type": "username", "name": "utilizador" },
+    {
+      "type": "text",
+      "name": "numero_inspeccao",
+      "label": "Número da inspecção",
+      "required": "yes",
+      "appearance": "numbers"
+    },
+    { "type": "dateTime", "name": "momento_inspeccao", "label": "Data e hora da inspecção" },
+    {
+      "type": "select_one condicao",
+      "name": "condicao_geral",
+      "label": "Condição geral do activo",
+      "required": "yes",
+      "appearance": "minimal"
+    },
+    {
+      "type": "select_multiple defeitos or_other",
+      "name": "defeitos",
+      "label": "Defeitos observados",
+      "relevant": "${condicao_geral} != 'bom'"
+    },
+    {
+      "type": "integer",
+      "name": "prioridade",
+      "label": "Prioridade de intervenção (1 a 5)",
+      "constraint": ". >= 1 and . <= 5",
+      "constraint_message": "A prioridade vai de 1 a 5.",
+      "relevant": "${condicao_geral} != 'bom'"
+    },
+    { "type": "barcode", "name": "etiqueta", "label": "Etiqueta do activo" },
+    { "type": "image", "name": "fotografia", "label": "Fotografia" },
+    { "type": "file", "name": "relatorio", "label": "Relatório em anexo" },
+    { "type": "hidden", "name": "origem_registo" },
+    { "type": "acknowledge", "name": "confirmacao", "label": "Confirmo os dados acima" },
+    {
+      "type": "text",
+      "name": "observacoes",
+      "label": "Observações",
+      "appearance": "multiline"
+    }
+  ],
+  "choices": [
+    { "list_name": "condicao", "name": "bom", "label": "Bom" },
+    { "list_name": "condicao", "name": "razoavel", "label": "Razoável" },
+    { "list_name": "condicao", "name": "mau", "label": "Mau" },
+    { "list_name": "defeitos", "name": "corrosao", "label": "Corrosão" },
+    { "list_name": "defeitos", "name": "fissura", "label": "Fissura" },
+    { "list_name": "defeitos", "name": "vandalismo", "label": "Vandalismo" }
+  ],
+  "settings": [
+    {
+      "form_title": "Inspecção de activos",
+      "form_id": "inspeccao_activos",
+      "version": "1.0.3"
+    }
+  ]
+}

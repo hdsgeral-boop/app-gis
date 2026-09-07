@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Restrição inegociável 9: nada de segredos no repositório. Estas credenciais
+  # são do serviço efémero do runner e morrem com o job.
+  DATABASE_URL: postgres://cvforms:cvforms@localhost:5432/cvforms
+  KEYCLOAK_ISSUER: http://localhost:8080/realms/cvforms
+  NEXTAUTH_SECRET: apenas-para-o-ci
+  API_URL: http://localhost:4000
+
+jobs:
+  verificar:
+    name: tipos, testes e build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # A mesma imagem do docker-compose. Testar contra um Postgres sem
+        # PostGIS provaria menos do que nada: as migrações nem sequer aplicam.
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: cvforms
+          POSTGRES_PASSWORD: cvforms
+          POSTGRES_DB: cvforms
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U cvforms -d cvforms"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Formato
+        run: pnpm format:check
+
+      - name: Migrações contra um PostGIS a sério
+        run: pnpm db:migrate
+
+      - name: O JSON Schema publicado está sincronizado com a fonte
+        run: pnpm --filter @cvforms/form-core schema:check
+
+      - name: Tipos, testes e build
+        run: pnpm turbo run typecheck test build
+
+  restricoes:
+    name: restrições inegociáveis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # As restrições do ESPECIFICACAO.md §8 que se podem verificar por leitura
+      # do código são verificadas aqui. As outras têm testes.
+      #
+      # Isto existe porque uma restrição que só vive num documento acaba por
+      # ser violada por alguém que não leu o documento — e o momento de dar por
+      # isso é agora, não no teste de campo.
+      - name: Nada de eval na avaliação de expressões (restrição 7)
+        run: |
+          if grep -rnE '\beval\(|new Function\(' \
+               --include='*.ts' --include='*.tsx' \
+               apps packages infra --exclude-dir=node_modules --exclude-dir=dist; then
+            echo "::error::encontrei eval ou Function() — ver ESPECIFICACAO.md §8, restrição 7"
+            exit 1
+          fi
+
+      - name: Nada de mosaicos do Google guardados para offline (restrição 1)
+        run: |
+          if grep -rniE 'maps\.googleapis\.com/.*(tile|mbtiles|cache)|googleTile.*(cache|offline)' \
+               --include='*.ts' --include='*.tsx' \
+               apps packages --exclude-dir=node_modules --exclude-dir=dist; then
+            echo "::error::mosaicos do Google não podem ser guardados — ver ESPECIFICACAO.md §8, restrição 1"
+            exit 1
+          fi
+
+      - name: Nenhum código específico de um formulário (restrição 6)
+        run: |
+          # Um `if` sobre a chave de um formulário concreto é o sintoma de que a
+          # plataforma deixou de ser plataforma.
+          if grep -rnE "(form|formulario|form_key|formKey)\s*(===|==)\s*['\"](local_consumo|cadastro|posto_transformacao|inquerito)" \
+               --include='*.ts' --include='*.tsx' \
+               apps packages --exclude-dir=node_modules --exclude-dir=dist --exclude-dir=test; then
+            echo "::error::código específico de um formulário — ver ESPECIFICACAO.md §8, restrição 6"
+            exit 1
+          fi
+
+      - name: Nenhum ficheiro .env commitado (restrição 9)
+        run: |
+          if git ls-files | grep -E '(^|/)\.env($|\.)' | grep -v '\.env\.example'; then
+            echo "::error::ficheiro .env no repositório — ver ESPECIFICACAO.md §8, restrição 9"
+            exit 1
+          fi

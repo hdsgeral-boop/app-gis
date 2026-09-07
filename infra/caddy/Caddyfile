@@ -1,0 +1,100 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Entrada do CVForms.
+#
+# O Caddy é o único serviço com portas abertas ao mundo. Tudo o resto —
+# Postgres, MinIO, PowerSync — só existe dentro da rede do compose. Um Postgres
+# com a 5432 aberta na Internet é encontrado por um scanner em menos de uma
+# hora, e um MinIO aberto é um balde de fotografias de campo à disposição de
+# quem passar.
+#
+# Os certificados são automáticos (Let's Encrypt). O único requisito é que os
+# cinco nomes apontem para o IP deste servidor ANTES do primeiro arranque —
+# senão o Caddy tenta emitir, falha, e fica em espera exponencial.
+# ═══════════════════════════════════════════════════════════════════════════
+
+{
+	# Onde a Let's Encrypt manda os avisos de expiração. Um certificado que
+	# expira num domingo sem ninguém avisado é um dia inteiro de técnicos sem
+	# sincronizar.
+	email {$ACME_EMAIL:admin@example.com}
+}
+
+# ── Painel ─────────────────────────────────────────────────────────────────
+{$DOMINIO_PAINEL} {
+	encode zstd gzip
+	reverse_proxy painel:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+}
+
+# ── API ────────────────────────────────────────────────────────────────────
+{$DOMINIO_API} {
+	encode zstd gzip
+	reverse_proxy api:4000
+
+	# Um registo com muitas respostas e um XLSForm importado passam do
+	# limite por omissão do Caddy.
+	request_body {
+		max_size 16MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}
+
+# ── Sincronização ──────────────────────────────────────────────────────────
+# O PowerSync mantém ligações abertas durante horas: o `flush_interval 0`
+# impede o Caddy de as segurar em buffer, que é o que faz a sincronização
+# parecer congelada num telefone com rede fraca.
+{$DOMINIO_SYNC} {
+	reverse_proxy powersync:8090 {
+		flush_interval -1
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}
+
+# ── Identidade ─────────────────────────────────────────────────────────────
+{$DOMINIO_AUTH} {
+	encode zstd gzip
+	reverse_proxy keycloak:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}
+
+# ── Anexos e mosaicos ──────────────────────────────────────────────────────
+# O telefone fala com o armazenamento DIRECTAMENTE, com um URL assinado (F9.3).
+# É por isso que este nome existe: sem ele, os ficheiros teriam de passar pela
+# API, e uma foto de 2 MB por uma rede de campo segura a ligação durante
+# minutos.
+#
+# `flush_interval -1` outra vez, e sem compressão: comprimir um JPEG ou um
+# PMTiles gasta CPU para não poupar um byte.
+{$DOMINIO_FICHEIROS} {
+	reverse_proxy minio:9000 {
+		flush_interval -1
+	}
+
+	request_body {
+		max_size 64MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+}

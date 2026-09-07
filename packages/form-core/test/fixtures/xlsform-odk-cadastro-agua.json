@@ -1,0 +1,86 @@
+{
+  "_nota": "XLSForm do tipo dos cadastros de pontos de água feitos em ODK Collect: um repetível com cálculo por instância e um total à raiz. Serve para provar que sum() dentro de um repetível converte.",
+  "survey": [
+    { "type": "start", "name": "start" },
+    { "type": "end", "name": "end" },
+    {
+      "type": "text",
+      "name": "codigo_ponto",
+      "label": "Código do ponto de água",
+      "required": "yes",
+      "constraint": "regex(., '^PA[0-9]{4}$')",
+      "constraint_message": "Formato esperado: PA0000"
+    },
+    { "type": "geopoint", "name": "localizacao", "label": "Localização do ponto" },
+    {
+      "type": "select_one tipo_ponto",
+      "name": "tipo",
+      "label": "Tipo de ponto de água",
+      "required": "yes"
+    },
+    {
+      "type": "select_one estado",
+      "name": "estado_funcionamento",
+      "label": "Estado de funcionamento",
+      "required": "yes"
+    },
+    {
+      "type": "text",
+      "name": "descricao_avaria",
+      "label": "Descreva a avaria",
+      "relevant": "${estado_funcionamento} != 'funcional'",
+      "required": "yes"
+    },
+    {
+      "type": "begin repeat",
+      "name": "medicoes",
+      "label": "Medições de caudal"
+    },
+    { "type": "date", "name": "data_medicao", "label": "Data da medição", "required": "yes" },
+    { "type": "decimal", "name": "caudal_lmin", "label": "Caudal (l/min)", "required": "yes" },
+    {
+      "type": "calculate",
+      "name": "caudal_m3h",
+      "calculation": "round((${caudal_lmin} * 60) div 1000, 3)"
+    },
+    { "type": "end repeat", "name": "medicoes" },
+    {
+      "type": "calculate",
+      "name": "caudal_total",
+      "calculation": "sum(${caudal_lmin})"
+    },
+    {
+      "type": "calculate",
+      "name": "numero_medicoes",
+      "calculation": "count(${medicoes})"
+    },
+    {
+      "type": "note",
+      "name": "aviso_sem_medicoes",
+      "label": "Ainda não registou nenhuma medição.",
+      "relevant": "count(${medicoes}) = 0"
+    },
+    {
+      "type": "image",
+      "name": "foto_ponto",
+      "label": "Fotografia do ponto",
+      "parameters": "max-pixels=1600"
+    }
+  ],
+  "choices": [
+    { "list_name": "tipo_ponto", "name": "furo", "label": "Furo com bomba manual" },
+    { "list_name": "tipo_ponto", "name": "chafariz", "label": "Chafariz" },
+    { "list_name": "tipo_ponto", "name": "nascente", "label": "Nascente protegida" },
+    { "list_name": "estado", "name": "funcional", "label": "Funcional" },
+    { "list_name": "estado", "name": "avariado", "label": "Avariado" },
+    { "list_name": "estado", "name": "abandonado", "label": "Abandonado" }
+  ],
+  "settings": [
+    {
+      "form_title": "Cadastro de pontos de água",
+      "form_id": "cadastro_agua",
+      "version": "1",
+      "instance_name": "${codigo_ponto}"
+    }
+  ]
+}

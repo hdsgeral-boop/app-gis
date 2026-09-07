@@ -1,0 +1,73 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# API do CVForms, para produção.
+#
+# Três andares, e cada um existe por uma razão:
+#
+#   1. `dependencias` instala tudo o que é preciso para COMPILAR. É a camada
+#      mais cara e a que muda menos; fica em cache enquanto o `pnpm-lock.yaml`
+#      não mudar, e por isso os manifestos são copiados antes do código.
+#   2. `compilacao` compila o `form-core`, o `@cvforms/db` e a API, e depois
+#      monta uma pasta auto-suficiente com o `pnpm deploy`.
+#   3. `producao` leva só essa pasta. Uma imagem com o `node_modules` de
+#      desenvolvimento passa de 1 GB, e num servidor pequeno isso é disco e
+#      tempo de arranque a mais.
+#
+# `pnpm deploy` E NÃO UM SEGUNDO `pnpm install`: monta a pasta A PARTIR do que
+# já está instalado, sem ir à rede. Numa ligação que deixa cair transferências
+# a meio, essa segunda instalação é onde a compilação falha — e falhou, antes
+# de isto ser assim.
+#
+# NÃO CORRE COMO ROOT. Um processo Node que serve HTTP não tem nada que fazer
+# com privilégios de root dentro do contentor.
+# ═══════════════════════════════════════════════════════════════════════════
+
+FROM node:22-alpine AS dependencias
+RUN corepack enable
+WORKDIR /repo
+
+# Uma ligação de Luanda deixa cair transferências a meio. Os valores por
+# omissão do pnpm desistem depressa de mais e a imagem falha a compilar por
+# uma razão que não tem nada que ver com o código.
+ENV npm_config_fetch_retries=8     npm_config_fetch_retry_maxtimeout=180000     npm_config_fetch_timeout=600000
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json .npmrc ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/form-core/package.json ./packages/form-core/
+COPY infra/db/package.json ./infra/db/
+RUN pnpm install --frozen-lockfile --filter @cvforms/api... --filter @cvforms/db...
+
+FROM dependencias AS compilacao
+COPY tsconfig.base.json turbo.json ./
+COPY packages/form-core ./packages/form-core
+COPY infra/db ./infra/db
+COPY apps/api ./apps/api
+
+# Voltar a ligar os pacotes do workspace: o `COPY` do código por cima das
+# pastas que o `pnpm install` já tinha preparado desfaz as ligações, e o `tsc`
+# do `@cvforms/db` passa a não encontrar os tipos do `form-core`. O `--offline`
+# garante que isto não vai à rede — tudo já está no armazém.
+RUN pnpm install --frozen-lockfile --offline --filter @cvforms/api... --filter @cvforms/db...
+
+RUN pnpm --filter @cvforms/form-core run build  && pnpm --filter @cvforms/db run build  && pnpm --filter @cvforms/api run build
+
+RUN pnpm --filter @cvforms/api --prod --legacy deploy /entrega
+
+FROM node:22-alpine AS producao
+RUN apk add --no-cache curl
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=compilacao /entrega ./
+# As migrações são ficheiros `.sql` e não entram nas dependências. É o serviço
+# `migracoes` do compose que as corre, com esta mesma imagem.
+COPY --from=compilacao /repo/infra/db/drizzle ./node_modules/@cvforms/db/drizzle
+
+USER node
+EXPOSE 4000
+
+# O `/health/live` responde mesmo com a base em baixo, de propósito: é
+# vivacidade, não prontidão. Reiniciar a API porque o Postgres está lento não
+# resolve nada e ainda tira do ar a parte que funcionava.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3   CMD curl -fsS http://localhost:4000/health/live || exit 1
+
+CMD ["node", "dist/main.js"]

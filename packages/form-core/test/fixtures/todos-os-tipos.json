@@ -1,0 +1,192 @@
+{
+  "spec_version": 1,
+  "form_id": "0192f3a1-4c2b-7d31-9a55-0f7c1b2e3d41",
+  "version": 1,
+  "title": { "pt": "Todos os tipos de campo", "en": "Every field type" },
+  "settings": {
+    "max_accuracy_m": 5,
+    "allow_edit_after_submit": false,
+    "geometry_field": "f_geopoint",
+    "languages": ["pt", "en"],
+    "default_language": "pt"
+  },
+  "fields": [
+    {
+      "id": "f_text",
+      "type": "text",
+      "name": "texto",
+      "label": { "pt": "Texto", "en": "Text" },
+      "max_length": 120,
+      "searchable": true
+    },
+    {
+      "id": "f_note",
+      "type": "note",
+      "name": "nota",
+      "label": { "pt": "Leia com atenção antes de continuar." }
+    },
+    {
+      "id": "f_integer",
+      "type": "integer",
+      "name": "inteiro",
+      "label": { "pt": "Inteiro" },
+      "min": 0,
+      "max": 99
+    },
+    {
+      "id": "f_decimal",
+      "type": "decimal",
+      "name": "decimal",
+      "label": { "pt": "Decimal" },
+      "min": 0,
+      "max": 1000,
+      "decimals": 2
+    },
+    { "id": "f_boolean", "type": "boolean", "name": "booleano", "label": { "pt": "Sim ou não" } },
+    {
+      "id": "f_select_one",
+      "type": "select_one",
+      "name": "escolha_unica",
+      "label": { "pt": "Escolha única" },
+      "choices_ref": "estados",
+      "allow_other": true
+    },
+    {
+      "id": "f_select_multiple",
+      "type": "select_multiple",
+      "name": "escolha_multipla",
+      "label": { "pt": "Escolha múltipla" },
+      "choices_ref": "estados",
+      "min_selected": 1,
+      "max_selected": 3
+    },
+    { "id": "f_date", "type": "date", "name": "data", "label": { "pt": "Data" } },
+    { "id": "f_time", "type": "time", "name": "hora", "label": { "pt": "Hora" } },
+    {
+      "id": "f_datetime",
+      "type": "datetime",
+      "name": "data_hora",
+      "label": { "pt": "Data e hora" }
+    },
+    {
+      "id": "f_geopoint",
+      "type": "geopoint",
+      "name": "ponto",
+      "label": { "pt": "Ponto" },
+      "max_accuracy_m": 2,
+      "required": true
+    },
+    { "id": "f_geotrace", "type": "geotrace", "name": "linha", "label": { "pt": "Linha" } },
+    { "id": "f_geoshape", "type": "geoshape", "name": "poligono", "label": { "pt": "Polígono" } },
+    {
+      "id": "f_photo",
+      "type": "photo",
+      "name": "fotografia",
+      "label": { "pt": "Fotografia" },
+      "max_count": 3,
+      "max_dimension_px": 1600
+    },
+    {
+      "id": "f_audio",
+      "type": "audio",
+      "name": "audio",
+      "label": { "pt": "Áudio" },
+      "max_duration_s": 120
+    },
+    {
+      "id": "f_file",
+      "type": "file",
+      "name": "ficheiro",
+      "label": { "pt": "Ficheiro" },
+      "accept": ["application/pdf"]
+    },
+    {
+      "id": "f_signature",
+      "type": "signature",
+      "name": "assinatura",
+      "label": { "pt": "Assinatura" }
+    },
+    {
+      "id": "f_barcode",
+      "type": "barcode",
+      "name": "codigo_barras",
+      "label": { "pt": "Código de barras" },
+      "formats": ["qr", "code128"]
+    },
+    {
+      "id": "f_calculate",
+      "type": "calculate",
+      "name": "dobro_do_inteiro",
+      "label": { "pt": "Dobro do inteiro" },
+      "calculation": { "op": "*", "args": ["$f_integer", 2] }
+    },
+    {
+      "id": "g_group",
+      "type": "group",
+      "name": "grupo",
+      "label": { "pt": "Grupo" },
+      "collapsed": false,
+      "fields": [
+        {
+          "id": "f_dentro_grupo",
+          "type": "text",
+          "name": "dentro_do_grupo",
+          "label": { "pt": "Dentro do grupo" }
+        }
+      ]
+    },
+    {
+      "id": "g_repeat",
+      "type": "repeat",
+      "name": "repetivel",
+      "label": { "pt": "Repetível" },
+      "min": 0,
+      "max": 25,
+      "instance_label": { "op": "coalesce", "args": ["$f_dentro_repeat", "(vazio)"] },
+      "fields": [
+        {
+          "id": "f_dentro_repeat",
+          "type": "text",
+          "name": "dentro_do_repetivel",
+          "label": { "pt": "Dentro do repetível" },
+          "required": true
+        },
+        {
+          "id": "g_repeat_aninhado",
+          "type": "repeat",
+          "name": "repetivel_aninhado",
+          "label": { "pt": "Repetível aninhado" },
+          "max": 5,
+          "fields": [
+            {
+              "id": "f_aninhado",
+              "type": "integer",
+              "name": "valor_aninhado",
+              "label": { "pt": "Valor aninhado" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f_reference",
+      "type": "reference",
+      "name": "posto_transformacao",
+      "label": { "pt": "Posto de transformação" },
+      "target_form_id": "0192f3a1-4c2b-7d31-9a55-0f7c1b2e3d42",
+      "display_fields": ["f_text"],
+      "filter": { "op": "==", "args": ["$f_select_one", "activo"] }
+    }
+  ],
+  "choice_lists": {
+    "estados": [
+      { "value": "activo", "label": { "pt": "Activo", "en": "Active" } },
+      { "value": "inactivo", "label": { "pt": "Inactivo", "en": "Inactive" } },
+      {
+        "value": "desconhecido",
+        "label": { "pt": "Desconhecido" },
+        "relevant": { "op": "==", "args": ["$f_boolean", true] }
+      }
+    ]
+  }
+}

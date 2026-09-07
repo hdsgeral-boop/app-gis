@@ -1,0 +1,36 @@
+# Configuração do PowerSync Service (Open Edition, auto-hospedado).
+#
+# Nada aqui é específico de um formulário, e é esse o ponto: o esquema físico
+# nunca muda quando se publica um formulário (restrição inegociável 5), por
+# isso este ficheiro e o sync-rules.yaml são escritos uma vez e não voltam a
+# ser tocados a cada formulário novo.
+
+replication:
+  connections:
+    - type: postgresql
+      uri: !env PS_DATABASE_URI
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: !env PS_DATABASE_URI
+  # Em desenvolvimento o Postgres do compose não tem TLS. Sem esta linha o
+  # serviço tenta ligar-se com TLS e falha na migração do seu próprio esquema.
+  sslmode: disable
+
+api:
+  tokens:
+    # Só para as rotas administrativas do próprio serviço.
+    - !env PS_ADMIN_TOKEN
+
+client_auth:
+  # Os tokens dos clientes são os mesmos JWT do Keycloak que a API valida.
+  # Uma só identidade em todo o sistema.
+  jwks_uri: !env PS_JWKS_URL
+  audience:
+    - !env PS_JWT_AUDIENCE
+
+port: !env PS_PORT
+
+sync_rules:
+  path: /config/sync-rules.yaml

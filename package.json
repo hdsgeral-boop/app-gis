@@ -1,0 +1,47 @@
+{
+  "name": "cvforms",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @cvforms/db db:generate",
+    "db:migrate": "pnpm --filter @cvforms/db db:migrate",
+    "db:seed": "pnpm --filter @cvforms/db db:seed",
+    "infra:up": "docker compose -f infra/docker/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "infra:logs": "docker compose -f infra/docker/docker-compose.yml logs -f",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "prettier": "^3.9.6",
+    "turbo": "^2.10.12",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "@swc/core",
+      "unrs-resolver"
+    ],
+    "overrides": {
+      "fastify": "^5.12.3"
+    }
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "expo": "~54.0.37",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  }
+}

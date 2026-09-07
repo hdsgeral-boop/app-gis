@@ -1,0 +1,80 @@
+{
+  "spec_version": 1,
+  "form_id": "0192f3a1-4c2b-7d31-9a55-0f7c1b2e3d40",
+  "version": 4,
+  "published_at": "2026-09-05T10:00:00Z",
+  "title": { "pt": "Local de Consumo" },
+  "settings": {
+    "max_accuracy_m": 2.0,
+    "allow_edit_after_submit": true,
+    "geometry_field": "f_geo",
+    "languages": ["pt"],
+    "default_language": "pt",
+    "record_label": { "op": "coalesce", "args": ["$f_cod", "sem código"] }
+  },
+  "fields": [
+    {
+      "id": "f_cod",
+      "type": "text",
+      "name": "codigo",
+      "label": { "pt": "Código do local" },
+      "required": true,
+      "searchable": true,
+      "constraint": { "op": "matches", "args": ["$self", "^LC[0-9]{6}$"] },
+      "constraint_message": { "pt": "Formato esperado: LC000000" }
+    },
+    {
+      "id": "f_tipo",
+      "type": "select_one",
+      "name": "tipo",
+      "label": { "pt": "Tipo de instalação" },
+      "choices_ref": "lista_tipos",
+      "required": true
+    },
+    {
+      "id": "f_pot",
+      "type": "decimal",
+      "name": "potencia",
+      "label": { "pt": "Potência contratada (kVA)" },
+      "relevant": { "op": "==", "args": ["$f_tipo", "industrial"] },
+      "constraint": { "op": "between", "args": ["$self", 0, 1000] }
+    },
+    {
+      "id": "f_geo",
+      "type": "geopoint",
+      "name": "localizacao",
+      "label": { "pt": "Localização" },
+      "required": true
+    },
+    {
+      "id": "g_cont",
+      "type": "repeat",
+      "name": "contadores",
+      "label": { "pt": "Contadores" },
+      "max": 10,
+      "instance_label": { "op": "coalesce", "args": ["$f_ns", "novo contador"] },
+      "fields": [
+        {
+          "id": "f_ns",
+          "type": "text",
+          "name": "numero_serie",
+          "label": { "pt": "Número de série" },
+          "required": true
+        },
+        {
+          "id": "f_foto",
+          "type": "photo",
+          "name": "foto_contador",
+          "label": { "pt": "Foto do contador" },
+          "max_dimension_px": 1600
+        }
+      ]
+    }
+  ],
+  "choice_lists": {
+    "lista_tipos": [
+      { "value": "domestico", "label": { "pt": "Doméstico" } },
+      { "value": "industrial", "label": { "pt": "Industrial" } }
+    ]
+  }
+}

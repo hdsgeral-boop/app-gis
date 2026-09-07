@@ -1,0 +1,13 @@
+env: load .env
+env: export POSTGRES_PORT DATABASE_URL DATABASE_POOL_MAX DATABASE_SSL PORT HOST LOG_LEVEL CORS_ORIGINS KEYCLOAK_ISSUER KEYCLOAK_AUDIENCE JWT_CLOCK_TOLERANCE_S NEXTAUTH_URL NEXTAUTH_SECRET KEYCLOAK_CLIENT_ID API_URL EXPO_PUBLIC_API_URL EXPO_PUBLIC_KEYCLOAK_ISSUER EXPO_PUBLIC_KEYCLOAK_CLIENT_ID EXPO_PUBLIC_POWERSYNC_URL POWERSYNC_URL REPLICACAO_ATRASO_ALERTA_MB REPLICACAO_ATRASO_CRITICO_MB REPLICACAO_VIGIA_S SENTRY_TRACES_SAMPLE_RATE PS_DATABASE_URI PS_JWKS_URL PS_JWT_AUDIENCE PS_PORT PS_ADMIN_TOKEN S3_ENDPOINT S3_REGION S3_BUCKET S3_ACCESS_KEY_ID S3_SECRET_ACCESS_KEY S3_FORCE_PATH_STYLE
+! No git repo found in current directory
+› Use git to track file changes before running commands that modify project files.
+Git status is dirty but the command will continue because the terminal is not interactive.
+- Clearing android
+✔ Cleared android code
+- Creating native directory (./android)
+✔ Created native directory
+- Updating package.json
+✔ Updated package.json | no changes
+- Running prebuild
+✔ Finished prebuild
