@@ -278,16 +278,6 @@ Cada linha aqui custou tempo. Acrescenta uma sempre que um erro se repetir.
   de módulos e não diz nada sobre migrações. Na máquina de quem desenvolve
   nunca acontece, porque o `dist/` já lá está de compilações anteriores. Importa
   de `./cliente.js`.
-- **`NODE_ENV=development` no ambiente parte o `next build`.** O `.env` de
-  desenvolvimento tem-no, e basta um `set -a; . ./.env` antes de compilar. O
-  Next compila o React em modo de desenvolvimento, os dois runtimes misturam-se,
-  e o erro que sai é
-  «<Html> should not be imported outside of pages/_document» — que não tem
-  nada que ver. Compila com `NODE_ENV=production`.
-- **O Postgres do CI é levantado à mão e não como `service`.** Um serviço do
-  runner não aceita argumentos de arranque, e este precisa de
-  `wal_level=logical`: sem isso o teste do vigia da F10.9 não consegue criar um
-  slot, e passaríamos a testar contra uma base configurada de outra maneira.
 - **Nunca faças `throw` ao carregar um módulo que o `next build` toca.** O Next
   apanha a excepção enquanto pré-desenha as páginas de erro, cai na página do
   encaminhador antigo, e o que sai é

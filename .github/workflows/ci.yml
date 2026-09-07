@@ -26,25 +26,24 @@ jobs:
     name: tipos, testes e build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        # A mesma imagem do docker-compose. Testar contra um Postgres sem
+        # PostGIS provaria menos do que nada: as migrações nem sequer aplicam.
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: cvforms
+          POSTGRES_PASSWORD: cvforms
+          POSTGRES_DB: cvforms
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U cvforms -d cvforms"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
     steps:
       - uses: actions/checkout@v4
-
-      # Postgres levantado à mão, e não como `service`, por uma razão: um
-      # serviço do runner não aceita argumentos de arranque, e este precisa de
-      # `wal_level=logical`. Sem isso o PowerSync não replica e o teste do
-      # vigia da F10.9 não tem como criar um slot — testaríamos contra uma
-      # base configurada de maneira diferente da de produção, que é o género
-      # de teste que passa e não prova nada.
-      #
-      # São os mesmos argumentos do `docker-compose.prod.yml`.
-      - name: Postgres com PostGIS e decodificação lógica
-        run: |
-          docker run -d --name postgres             -e POSTGRES_USER=cvforms -e POSTGRES_PASSWORD=cvforms -e POSTGRES_DB=cvforms             -p 5432:5432 postgis/postgis:16-3.4             postgres -c wal_level=logical -c max_replication_slots=8 -c max_wal_senders=8
-          for i in $(seq 1 60); do
-            docker exec postgres pg_isready -U cvforms -d cvforms > /dev/null 2>&1 && break
-            sleep 2
-          done
-          docker exec postgres psql -U cvforms -d cvforms -tAc 'SHOW wal_level'
 
       - uses: pnpm/action-setup@v4
 

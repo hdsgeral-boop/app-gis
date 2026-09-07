@@ -31,20 +31,6 @@ let app: NestFastifyApplication;
 let jwks: Server;
 let sql: postgres.Sql;
 
-/**
- * Um slot lógico só se cria com `wal_level = logical`.
- *
- * O compose de desenvolvimento e o de produção põem-no assim, porque é o que o
- * PowerSync exige. Um Postgres de origem vem em `replica`, e nesse a criação do
- * slot rebenta com `logical decoding requires wal_level >= logical` — que não é
- * um defeito do código, é a base não estar configurada para isto.
- *
- * Os testes que precisam mesmo de um slot saltam-se nesse caso, em vez de
- * falharem. Os outros — que o endpoint responde, que é público, que o /health
- * não fica vermelho — correm em qualquer Postgres.
- */
-let temDecodificacaoLogica = false;
-
 /** Um slot só deste teste, para não mexer no do PowerSync. */
 const slot = `cvf_teste_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
@@ -73,14 +59,6 @@ beforeAll(async () => {
   process.env.REPLICACAO_VIGIA_S = '0';
 
   sql = postgres(databaseUrl, { max: 2, onnotice: () => {} });
-
-  const [nivel] = await sql<Array<{ wal_level: string }>>`SHOW wal_level`;
-  temDecodificacaoLogica = nivel?.wal_level === 'logical';
-  if (!temDecodificacaoLogica) {
-    console.warn(
-      'wal_level não é `logical`: os testes que criam um slot de replicação vão ser saltados.',
-    );
-  }
 
   const modulo = await Test.createTestingModule({ imports: [AppModule] }).compile();
   app = modulo.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
@@ -114,8 +92,7 @@ suite('F10.9 — vigia dos slots de replicação', () => {
     expect(resposta.statusCode).not.toBe(401);
   });
 
-  it('um slot parado aparece como inactivo e a acumular WAL', async (contexto) => {
-    if (!temDecodificacaoLogica) return contexto.skip();
+  it('um slot parado aparece como inactivo e a acumular WAL', async () => {
     // Um slot criado e nunca consumido é exactamente o cenário do ADR-0004:
     // o Postgres passa a guardar WAL para um consumidor que não existe.
     await sql`SELECT pg_create_logical_replication_slot(${slot}, 'pgoutput')`;
@@ -130,19 +107,18 @@ suite('F10.9 — vigia dos slots de replicação', () => {
     expect(estado.detalhe).toContain(slot);
   });
 
-  it('o /health continua verde mesmo com um slot atrasado', async () => {
+  it('o /health continua verde: um slot atrasado não tira a API de serviço', async () => {
     // Tirar a API de serviço não desatrasa slot nenhum, e deixa os técnicos
-    // sem a única parte que ainda funcionava. Isto vale com ou sem slot: o
-    // estado geral NUNCA olha para a replicação.
+    // sem a única parte que ainda funcionava.
     const resposta = await app.inject({ method: 'GET', url: '/health' });
     expect(resposta.statusCode).toBe(200);
     const corpo = resposta.json();
+    expect(corpo.replicacao.ok).toBe(false);
+    // O estado geral não olha para a replicação.
     expect(corpo.dependencias.postgres.ok).toBe(true);
-    if (temDecodificacaoLogica) expect(corpo.replicacao.ok).toBe(false);
   });
 
-  it('o estado do último exame fica guardado, sem voltar à base', async (contexto) => {
-    if (!temDecodificacaoLogica) return contexto.skip();
+  it('o estado do último exame fica guardado, sem voltar à base', async () => {
     const vigia = app.get(VigiaDeReplicacao);
     expect(vigia.estado?.slots.some((s) => s.nome === slot)).toBe(true);
   });
