@@ -31,7 +31,20 @@ let app: NestFastifyApplication;
 let jwks: Server;
 let sql: postgres.Sql;
 
-/** Um slot só deste teste, para não mexer no do PowerSync. */
+/**
+ * Um slot só deste teste, para não mexer no do PowerSync.
+ *
+ * É um slot FÍSICO e não lógico, e a escolha é deliberada. O PowerSync usa um
+ * slot lógico, mas criá-lo exige `wal_level = logical` — que o compose deste
+ * projecto define e um Postgres de origem não tem. O CI corre contra a imagem
+ * sem essa configuração, e com um slot lógico o teste falhava exactamente no
+ * ambiente onde mais interessa correr.
+ *
+ * O vigia não distingue os dois: lê `pg_replication_slots`, que tem os dois
+ * tipos, e olha para `active` e `restart_lsn`. Um slot físico reservado e nunca
+ * consumido é o mesmo cenário do ADR-0004 — WAL guardado para um consumidor que
+ * não existe — e exercita o mesmo caminho de código.
+ */
 const slot = `cvf_teste_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
 
 beforeAll(async () => {
@@ -95,7 +108,9 @@ suite('F10.9 — vigia dos slots de replicação', () => {
   it('um slot parado aparece como inactivo e a acumular WAL', async () => {
     // Um slot criado e nunca consumido é exactamente o cenário do ADR-0004:
     // o Postgres passa a guardar WAL para um consumidor que não existe.
-    await sql`SELECT pg_create_logical_replication_slot(${slot}, 'pgoutput')`;
+    // `true` reserva o WAL já: sem isso o `restart_lsn` fica a NULL e o vigia
+    // não teria atraso nenhum para medir.
+    await sql`SELECT pg_create_physical_replication_slot(${slot}, true)`;
 
     const vigia = app.get(VigiaDeReplicacao);
     const estado = await vigia.verificar();
