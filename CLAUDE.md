@@ -270,6 +270,26 @@ Cada linha aqui custou tempo. Acrescenta uma sempre que um erro se repetir.
 - **A API não lê o `.env` sozinha.** O `pnpm dev` carrega-o pelo turbo; a
   correr o `main.ts` à mão é preciso `set -a; . ./.env; set +a` antes, senão
   falha com «Ambiente inválido» e uma lista de variáveis em falta.
+- **O que corre ANTES do build não pode importar o barrel do `@cvforms/db`.**
+  O `index.ts` reexporta o gerador de vistas, que importa o `form-core`
+  compilado. O `migrate.ts` corre com `tsx` num clone limpo, onde `dist/` ainda
+  não existe, e falha com
+  `Cannot find module '…/@cvforms/form-core/dist/index.js'` — um erro que fala
+  de módulos e não diz nada sobre migrações. Na máquina de quem desenvolve
+  nunca acontece, porque o `dist/` já lá está de compilações anteriores. Importa
+  de `./cliente.js`.
+- **Nunca faças `throw` ao carregar um módulo que o `next build` toca.** O Next
+  apanha a excepção enquanto pré-desenha as páginas de erro, cai na página do
+  encaminhador antigo, e o que sai é
+  «<Html> should not be imported outside of pages/_document» — que não tem nada
+  que ver com o problema. Distinguir a compilação pelo `NEXT_PHASE` não serve:
+  o Next não o define nos processos que pré-desenham.
+- **Corre o `expo prebuild` de dentro de `apps/mobile`, nunca da raiz.** Sem
+  `app.json`, o Expo trata a pasta onde está como se fosse a app: inventa os
+  valores por omissão, escreve dependências no `package.json` e cria uma pasta
+  `android/`. Foi assim que o `pnpm install --frozen-lockfile` do CI passou a
+  falhar, e a mensagem — «specifiers in the lockfile don't match» — aponta para
+  o lockfile, que estava certo.
 - **Uma subconsulta dentro de uma política RLS aplica o RLS da tabela que lê.**
   É o que faz `record_revisions` herdar o filtro de `records` sem ter política
   própria. Uma função `SECURITY DEFINER` no meio quebra essa cadeia — às vezes

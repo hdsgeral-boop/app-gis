@@ -9,7 +9,9 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
-import { createClient } from './index.js';
+// Do `cliente.ts` e NÃO do barrel: o barrel arrasta o `form-core`
+// compilado, que ainda não existe quando isto corre. Ver `cliente.ts`.
+import { createClient } from './cliente.js';
 
 const url = process.env.DATABASE_URL;
 if (!url) {

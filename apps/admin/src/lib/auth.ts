@@ -23,12 +23,22 @@ import KeycloakProvider from 'next-auth/providers/keycloak';
 function emissor(): string {
   const valor = process.env.KEYCLOAK_ISSUER;
   if (valor) return valor;
-  if (process.env.NEXT_PHASE === 'phase-production-build') {
-    // Um valor de fachada, só para a compilação atravessar. Nunca é usado:
-    // qualquer pedido a sério lê o ambiente outra vez.
-    return 'https://exemplo.invalido/realms/cvforms';
-  }
-  throw new Error('KEYCLOAK_ISSUER não está definida. Ver .env.example.');
+
+  // NUNCA rebentar aqui. Este módulo é carregado pelo `next build` quando ele
+  // pré-desenha as páginas de erro, e nessa altura não há ambiente nenhum —
+  // nem deve haver: as variáveis de produção não entram numa imagem Docker.
+  //
+  // Um `throw` fazia a compilação falhar com «<Html> should not be imported
+  // outside of pages/_document», que não tem nada que ver com o que se passa:
+  // o Next apanha a excepção, cai na página de erro do encaminhador antigo, e
+  // é ESSA que rebenta. Duas horas a olhar para o erro errado.
+  //
+  // Tentei antes distinguir a compilação pelo `NEXT_PHASE`, e não serve: o
+  // Next não o define nos processos que pré-desenham as páginas.
+  console.error(
+    'KEYCLOAK_ISSUER não está definida — a autenticação não vai funcionar. Ver .env.example.',
+  );
+  return 'https://keycloak-nao-configurado.invalido/realms/cvforms';
 }
 
 export const authOptions: NextAuthOptions = {

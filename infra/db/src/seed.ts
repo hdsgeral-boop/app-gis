@@ -11,7 +11,8 @@
 import { randomUUID } from 'node:crypto';
 import { sql } from 'drizzle-orm';
 
-import { createDatabase } from './index.js';
+// Do `cliente.ts` e NÃO do barrel, pela mesma razão do `migrate.ts`.
+import { createDatabase } from './cliente.js';
 import { forms, formVersions, organizations, projects, roles } from './schema.js';
 
 const ORG_ID = '0192f400-0000-7000-8000-000000000001';
