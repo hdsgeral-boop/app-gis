@@ -12,7 +12,11 @@ concurrency:
 env:
   # Restrição inegociável 9: nada de segredos no repositório. Estas credenciais
   # são do serviço efémero do runner e morrem com o job.
-  DATABASE_URL: postgres://cvforms:cvforms@localhost:5432/cvforms
+  # 127.0.0.1 e não `localhost`: o Node resolve `localhost` para ::1 primeiro,
+  # e o serviço do runner só escuta em IPv4. O driver acaba por tentar o IPv4 a
+  # seguir, mas a primeira tentativa falha sempre — e quando falha de vez, o
+  # erro que sai é `ECONNREFUSED ::1:5432`, que parece a base estar em baixo.
+  DATABASE_URL: postgres://cvforms:cvforms@127.0.0.1:5432/cvforms
   KEYCLOAK_ISSUER: http://localhost:8080/realms/cvforms
   NEXTAUTH_SECRET: apenas-para-o-ci
   API_URL: http://localhost:4000

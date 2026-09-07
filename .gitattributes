@@ -1,0 +1,30 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Fins de linha.
+#
+# Sem isto, o Git de Windows guarda o que lhe derem e um ficheiro escrito num
+# editor de Windows entra no repositório com CRLF. Em Linux — que é onde o CI
+# e os servidores correm — um `.sh` com CRLF falha com
+# «bad interpreter: /bin/sh^M: no such file or directory», e ninguém percebe
+# porquê a olhar para o ficheiro.
+#
+# `text=auto` normaliza para LF no repositório; quem estiver em Windows
+# continua a ver CRLF no editor.
+# ═══════════════════════════════════════════════════════════════════════════
+* text=auto eol=lf
+
+# Estes correm SEMPRE em Linux, mesmo quando editados em Windows.
+*.sh   text eol=lf
+*.sql  text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+Dockerfile*  text eol=lf
+Caddyfile    text eol=lf
+gradlew      text eol=lf
+
+# Binários: o Git não lhes toca.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.pdf  binary
+*.apk  binary
+*.pmtiles binary
