@@ -295,6 +295,19 @@ Cada linha aqui custou tempo. Acrescenta uma sempre que um erro se repetir.
   `android/`. Foi assim que o `pnpm install --frozen-lockfile` do CI passou a
   falhar, e a mensagem — «specifiers in the lockfile don't match» — aponta para
   o lockfile, que estava certo.
+- **O `jwt` do NextAuth não corre quando uma página é desenhada.** Corre só nas
+  rotas do próprio NextAuth (`/api/auth/session`). Um Server Component chama
+  `getToken()`, que se limita a decifrar o cookie — se o token de acesso lá
+  dentro expirou, vai expirado para a API. O realm emite tokens de 15 minutos e
+  a sessão dura 30 dias: ao fim de um quarto de hora o painel continua a
+  mostrar o nome de quem entrou e TODAS as páginas dizem «respondeu 401».
+  Parece a API avariada e é a renovação em falta. A renovação tem de estar
+  também no `lib/api.ts`, onde a chamada é feita.
+- **Um projecto vazio não aparecia no `/me`,** que filtrava pelos projectos com
+  formulários acessíveis. É a regra certa para o telefone e um beco no painel:
+  organização nova → zero formulários → zero projectos → o ecrã de criar
+  formulário não tem onde o pôr → não se cria o primeiro formulário nenhum.
+  Quem tem `admin` ou `gestor` vê todos.
 - **Uma subconsulta dentro de uma política RLS aplica o RLS da tabela que lê.**
   É o que faz `record_revisions` herdar o filtro de `records` sem ter política
   própria. Uma função `SECURITY DEFINER` no meio quebra essa cadeia — às vezes

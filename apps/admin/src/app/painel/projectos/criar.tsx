@@ -4,22 +4,18 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 /**
- * Criar um formulário.
+ * Criar um projecto.
  *
- * A chave é sugerida a partir do título e é editável até à criação, porque
- * depois dá nome às vistas do PostGIS — e mudá-la mais tarde renomeia camadas
- * a que alguém já pode ter ligado o QGIS.
+ * A chave segue a mesma regra dos formulários — minúsculas, dígitos e
+ * underscore — porque entra no nome das vistas do PostGIS
+ * (`v_<projecto>_<formulario>_v1`), que atravessam o QGIS e o Power BI.
  */
-export function CriarFormulario({
-  projectos,
-}: {
-  projectos: { id: string; key: string; name: string }[];
-}) {
+export function CriarProjecto() {
   const router = useRouter();
-  const [titulo, setTitulo] = useState('');
+  const [nome, setNome] = useState('');
   const [chave, setChave] = useState('');
   const [chaveTocada, setChaveTocada] = useState(false);
-  const [projecto, setProjecto] = useState(projectos[0]?.id ?? '');
+  const [descricao, setDescricao] = useState('');
   const [erro, setErro] = useState<string>();
   const [aCriar, setACriar] = useState(false);
 
@@ -37,17 +33,25 @@ export function CriarFormulario({
     setACriar(true);
     setErro(undefined);
     try {
-      const resposta = await fetch('/api/cvforms/admin/forms', {
+      const resposta = await fetch('/api/cvforms/admin/projects', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ projecto_id: projecto, key: chave, titulo: { pt: titulo } }),
+        body: JSON.stringify({
+          key: chave,
+          nome,
+          ...(descricao.trim() ? { descricao: descricao.trim() } : {}),
+        }),
       });
       const corpo = await resposta.json();
       if (!resposta.ok) {
         setErro(corpo.message ?? `a API respondeu ${resposta.status}`);
         return;
       }
-      router.push(`/painel/formularios/${corpo.form_id}`);
+      setNome('');
+      setChave('');
+      setChaveTocada(false);
+      setDescricao('');
+      router.refresh();
     } catch (e) {
       setErro(e instanceof Error ? e.message : String(e));
     } finally {
@@ -55,31 +59,18 @@ export function CriarFormulario({
     }
   }
 
-  if (projectos.length === 0) {
-    return (
-      <div className="cartao">
-        <h2>Criar formulário</h2>
-        <p className="suave">
-          Não há nenhum projecto nesta organização, e um formulário pertence sempre a um projecto.
-        </p>
-        <a className="botao" href="/painel/projectos">
-          criar o primeiro projecto
-        </a>
-      </div>
-    );
-  }
-
   return (
     <div className="cartao">
-      <h2>Criar formulário</h2>
+      <h2>Criar projecto</h2>
+
       <label className="campo">
-        <span className="rotulo">Título</span>
+        <span className="rotulo">Nome</span>
         <input
           type="text"
-          value={titulo}
-          placeholder="Local de Consumo"
+          value={nome}
+          placeholder="Piloto do Bengo"
           onChange={(e) => {
-            setTitulo(e.target.value);
+            setNome(e.target.value);
             if (!chaveTocada) setChave(sugerirChave(e.target.value));
           }}
         />
@@ -91,26 +82,25 @@ export function CriarFormulario({
           type="text"
           value={chave}
           pattern="[a-z][a-z0-9_]*"
+          placeholder="piloto_bengo"
           onChange={(e) => {
             setChaveTocada(true);
             setChave(e.target.value);
           }}
         />
         <span className="suave pequeno">
-          Dá nome às vistas do PostGIS: <code>v_&lt;projecto&gt;_{chave || '<chave>'}_v1</code>.
-          Escolhe-a bem — mudá-la depois renomeia camadas a que alguém já ligou o QGIS.
+          Entra no nome das vistas: <code>v_{chave || '<chave>'}_&lt;formulário&gt;_v1</code>.
         </span>
       </label>
 
       <label className="campo">
-        <span className="rotulo">Projecto</span>
-        <select value={projecto} onChange={(e) => setProjecto(e.target.value)}>
-          {projectos.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
+        <span className="rotulo">Descrição (opcional)</span>
+        <input
+          type="text"
+          value={descricao}
+          placeholder="Levantamento de locais de consumo no Bengo"
+          onChange={(e) => setDescricao(e.target.value)}
+        />
       </label>
 
       {erro ? <p className="erro">{erro}</p> : null}
@@ -118,10 +108,10 @@ export function CriarFormulario({
       <button
         type="button"
         className="botao"
-        disabled={aCriar || titulo.trim() === '' || !/^[a-z][a-z0-9_]*$/.test(chave)}
+        disabled={aCriar || nome.trim() === '' || !/^[a-z][a-z0-9_]*$/.test(chave)}
         onClick={() => void criar()}
       >
-        {aCriar ? 'a criar…' : 'criar e abrir o construtor'}
+        {aCriar ? 'a criar…' : 'criar projecto'}
       </button>
     </div>
   );

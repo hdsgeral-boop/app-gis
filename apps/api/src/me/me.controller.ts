@@ -67,6 +67,15 @@ export class MeController {
 
     const idsComFormulario = new Set(formularios.map((f) => f.projecto_id));
 
+    // QUEM ADMINISTRA VÊ TODOS OS PROJECTOS DA ORGANIZAÇÃO, mesmo os vazios.
+    // Filtrar pelos projectos que já têm formulários acessíveis é a regra
+    // certa para o telefone — um técnico não tem que saber que existe um
+    // projecto onde não recolhe nada. No painel é um beco: numa organização
+    // acabada de criar não há formulários, logo não há projectos visíveis,
+    // logo o ecrã de criar formulário não tem onde o pôr e não se consegue
+    // criar o primeiro formulário nenhum.
+    const administra = principal.roles.some((papel) => papel === 'admin' || papel === 'gestor');
+
     return {
       subject: principal.subject,
       username: principal.username,
@@ -76,7 +85,9 @@ export class MeController {
       org: org ? { ...org, provisionada: true } : { id: principal.orgId, provisionada: false },
       papeis: principal.roles,
       papeis_internos: papeisInternos,
-      projectos: projectosVisiveis.filter((p) => idsComFormulario.has(p.id)),
+      projectos: administra
+        ? projectosVisiveis
+        : projectosVisiveis.filter((p) => idsComFormulario.has(p.id)),
       formularios,
     };
   }

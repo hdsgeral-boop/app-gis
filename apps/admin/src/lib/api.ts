@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { getToken } from 'next-auth/jwt';
 import { cookies, headers } from 'next/headers';
 
-import { authOptions } from './auth';
+import { authOptions, renovar } from './auth';
 
 /**
  * Chama a API do Consul Colect em nome do utilizador com sessão iniciada.
@@ -42,6 +42,15 @@ export async function chamarApiBruto(caminho: string, init?: RequestInit): Promi
   });
 }
 
+/**
+ * Cache dos tokens renovados aqui, em memória do processo.
+ *
+ * Um render de página faz duas ou três chamadas à API; sem isto, cada uma
+ * pediria um token novo ao Keycloak. A chave é o refresh token, que é o que
+ * identifica a sessão — nunca sai deste processo e nunca vai para log nenhum.
+ */
+const renovados = new Map<string, { acesso: string; expiraEm: number }>();
+
 async function tokenDeAcesso(): Promise<string | undefined> {
   const cookieStore = await cookies();
   const headerStore = await headers();
@@ -52,7 +61,44 @@ async function tokenDeAcesso(): Promise<string | undefined> {
     } as never,
     secret: process.env.NEXTAUTH_SECRET ?? '',
   });
-  return token?.accessToken as string | undefined;
+  if (!token) return undefined;
+
+  const acesso = token.accessToken as string | undefined;
+  const expiraEm = token.accessTokenExpiresAt as number | undefined;
+  if (acesso && expiraEm && Date.now() < expiraEm - 30_000) return acesso;
+
+  // AQUI É QUE A RENOVAÇÃO TEM MESMO DE ACONTECER.
+  //
+  // O `jwt` do NextAuth renova e volta a escrever o cookie, mas só corre nas
+  // rotas do próprio NextAuth — o `/api/auth/session` que o browser sonda. O
+  // render de uma página do painel não passa por lá: lê o cookie tal como
+  // está, com o token que já expirou, e leva um 401 da API. Era esse o defeito
+  // — o painel mostrava o nome de quem entrou e todas as páginas diziam
+  // «respondeu 401» ao fim de um quarto de hora.
+  //
+  // Um Server Component não pode escrever cookies, por isso o resultado não se
+  // persiste: fica no cache acima até expirar. O realm tem
+  // `revokeRefreshToken` a falso, ou seja, o refresh token continua a servir
+  // enquanto a sessão do Keycloak durar; se alguém o ligar, é preciso passar a
+  // renovar em middleware, que é onde há resposta onde pôr o cookie.
+  const refresh = token.refreshToken as string | undefined;
+  if (!refresh) return acesso;
+
+  const guardado = renovados.get(refresh);
+  if (guardado && Date.now() < guardado.expiraEm - 30_000) return guardado.acesso;
+
+  const renovado = await renovar(token);
+  const novoAcesso = renovado.accessToken;
+  if (renovado.erro || !novoAcesso) return acesso;
+
+  // Um limite qualquer, só para isto não crescer sem fim num processo de longa
+  // duração. As entradas velhas são substituídas na renovação seguinte.
+  if (renovados.size > 500) renovados.clear();
+  renovados.set(refresh, {
+    acesso: novoAcesso,
+    expiraEm: renovado.accessTokenExpiresAt ?? Date.now() + 60_000,
+  });
+  return novoAcesso;
 }
 
 export async function sessaoActual() {

@@ -7,6 +7,7 @@ import { ArmazenamentoService } from './attachments/armazenamento.service.js';
 import { AttachmentsController } from './attachments/attachments.controller.js';
 import { ExportsController } from './admin/exports.controller.js';
 import { PessoasController } from './admin/pessoas.controller.js';
+import { ProjectosController } from './admin/projectos.controller.js';
 import { MapasController } from './mapas/mapas.controller.js';
 import { AuthGuard } from './auth/auth.guard.js';
 import { ContextoDaBaseInterceptor } from './db/contexto.interceptor.js';
@@ -73,6 +74,7 @@ const envProviderDoLogger = { provide: ENV, useFactory: () => loadEnv() };
     AdminFormsController,
     ExportsController,
     PessoasController,
+    ProjectosController,
     MapasController,
   ],
   providers: [
