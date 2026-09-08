@@ -1,0 +1,269 @@
+
+> @cvforms/admin@0.0.0 dev C:\xampp\htdocs\APP_GIS\apps\admin
+> next dev -p 3000
+
+   ▲ Next.js 15.5.25
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.10.30:3000
+
+ ✓ Starting...
+ ✓ Ready in 31.4s
+ ○ Compiling /entrar ...
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\DumpStack.log.tmp'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\hiberfil.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ✓ Compiled /entrar in 29.2s (978 modules)
+ GET /entrar 200 in 34757ms
+ ○ Compiling / ...
+ ✓ Compiled / in 12.6s (969 modules)
+ GET / 307 in 14476ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ GET /entrar 200 in 19729ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 12.8s (972 modules)
+ GET /entrar 200 in 3333ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ ○ Compiling / ...
+ ✓ Compiled / in 13.5s (654 modules)
+ GET / 307 in 17368ms
+ ○ Compiling /entrar ...
+ ✓ Compiled /entrar in 6.3s (687 modules)
+ GET /entrar 200 in 9640ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 4s (692 modules)
+ GET /api/auth/session 200 in 8502ms
+ GET /api/auth/providers 200 in 572ms
+ GET /api/auth/csrf 200 in 143ms
+[next-auth][error][SIGNIN_OAUTH_ERROR] 
+https://next-auth.js.org/errors#signin_oauth_error outgoing request timed out after 3500ms {
+  error: {
+    message: 'outgoing request timed out after 3500ms',
+    stack: 'RPError: outgoing request timed out after 3500ms\n' +
+      '    at eval (webpack-internal:///(rsc)/../../node_modules/openid-client/lib/helpers/request.js:140:13)\n' +
+      '    at async Issuer.discover (webpack-internal:///(rsc)/../../node_modules/openid-client/lib/issuer.js:144:22)\n' +
+      '    at async openidClient (webpack-internal:///(rsc)/../../node_modules/next-auth/core/lib/oauth/client.js:13:14)\n' +
+      '    at async getAuthorizationUrl (webpack-internal:///(rsc)/../../node_modules/next-auth/core/lib/oauth/authorization-url.js:58:18)\n' +
+      '    at async Object.signin (webpack-internal:///(rsc)/../../node_modules/next-auth/core/routes/signin.js:31:24)\n' +
+      '    at async AuthHandler (webpack-internal:///(rsc)/../../node_modules/next-auth/core/index.js:230:26)\n' +
+      '    at async NextAuthRouteHandler (webpack-internal:///(rsc)/../../node_modules/next-auth/next/index.js:57:28)\n' +
+      '    at async NextAuth._args$ (webpack-internal:///(rsc)/../../node_modules/next-auth/next/index.js:89:16)\n' +
+      '    at async AppRouteRouteModule.do (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:5:38833)\n' +
+      '    at async AppRouteRouteModule.handle (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:5:46115)\n' +
+      '    at async responseGenerator (webpack-internal:///(rsc)/../../node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:203:38)\n' +
+      '    at async AppRouteRouteModule.handleResponse (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\compiled\\next-server\\app-route.runtime.dev.js:1:196168)\n' +
+      '    at async handleResponse (webpack-internal:///(rsc)/../../node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:265:32)\n' +
+      '    at async handler (webpack-internal:///(rsc)/../../node_modules/next/dist/build/webpack/loaders/next-app-loader/index.js?name=app%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&page=%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute&appPaths=&pagePath=private-next-app-dir%2Fapi%2Fauth%2F%5B...nextauth%5D%2Froute.ts&appDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin%5Csrc%5Capp&pageExtensions=tsx&pageExtensions=ts&pageExtensions=jsx&pageExtensions=js&rootDir=C%3A%5Cxampp%5Chtdocs%5CAPP_GIS%5Capps%5Cadmin&isDev=true&tsconfigPath=tsconfig.json&basePath=&assetPrefix=&nextConfigOutput=standalone&preferredRegion=&middlewareConfig=e30%3D&isGlobalNotFoundEnabled=!:317:13)\n' +
+      '    at async DevServer.renderToResponseWithComponentsImpl (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\base-server.js:1430:9)\n' +
+      '    at async DevServer.renderPageComponent (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\base-server.js:1482:24)\n' +
+      '    at async DevServer.renderToResponseImpl (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\base-server.js:1522:32)\n' +
+      '    at async DevServer.pipeImpl (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\base-server.js:1026:25)\n' +
+      '    at async NextNodeServer.handleCatchallRenderRequest (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\next-server.js:394:17)\n' +
+      '    at async DevServer.handleRequestImpl (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\base-server.js:917:17)\n' +
+      '    at async C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:400:20\n' +
+      '    at async Span.traceAsyncFn (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\trace\\trace.js:157:20)\n' +
+      '    at async DevServer.handleRequest (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\dev\\next-dev-server.js:396:24)\n' +
+      '    at async invokeRender (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\lib\\router-server.js:240:21)\n' +
+      '    at async handleRequest (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\lib\\router-server.js:437:24)\n' +
+      '    at async requestHandlerImpl (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\lib\\router-server.js:485:13)\n' +
+      '    at async Server.requestListener (C:\\xampp\\htdocs\\APP_GIS\\node_modules\\next\\dist\\server\\lib\\start-server.js:226:13)',
+    name: 'RPError'
+  },
+  providerId: 'keycloak',
+  message: 'outgoing request timed out after 3500ms'
+}
+ POST /api/auth/signin/keycloak 200 in 5737ms
+ GET /api/auth/error?error=OAuthSignin 302 in 411ms
+ GET /api/auth/signin?error=OAuthSignin 302 in 110ms
+ GET /entrar?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Fpainel&error=OAuthSignin 200 in 3456ms
+ GET /api/auth/session 200 in 184ms
+ GET /api/auth/providers 200 in 429ms
+ GET /api/auth/csrf 200 in 119ms
+ POST /api/auth/signin/keycloak 200 in 748ms
+[next-auth][error][OAUTH_CALLBACK_ERROR] 
+https://next-auth.js.org/errors#oauth_callback_error outgoing request timed out after 3500ms {
+  error: [Error [OAuthCallbackError]: outgoing request timed out after 3500ms] {
+    code: undefined
+  },
+  providerId: 'keycloak',
+  message: 'outgoing request timed out after 3500ms'
+}
+ GET /api/auth/callback/keycloak?state=G5sQXMeZGQ4MiewfENJlQUjvLwVMVG_5-JOBiU7AJRs&session_state=023b0a7b-c41b-4284-824f-37bc5ef21e16&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fcvforms&code=78b59d96-e5c8-4a57-ab9f-9665375a6e52.023b0a7b-c41b-4284-824f-37bc5ef21e16.e68c2419-8b54-44c6-b6c3-e7c9a3c1b274 302 in 19094ms
+ GET /api/auth/error?error=OAuthCallback 302 in 70ms
+ GET /api/auth/signin?error=OAuthCallback 302 in 72ms
+ GET /entrar?callbackUrl=http%3A%2F%2Flocalhost%3A3000%2Fpainel&error=OAuthCallback 200 in 1013ms
+ GET /api/auth/session 200 in 110ms
+ GET /api/auth/providers 200 in 290ms
+ GET /api/auth/csrf 200 in 112ms
+ POST /api/auth/signin/keycloak 200 in 1427ms
+ GET /api/auth/callback/keycloak?state=i_krHwE16ch1m2ib9IId90_Ja7jr3Dyw77jagdBN3Aw&session_state=023b0a7b-c41b-4284-824f-37bc5ef21e16&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fcvforms&code=a411bade-6078-448c-8e2e-63248e0f85d8.023b0a7b-c41b-4284-824f-37bc5ef21e16.e68c2419-8b54-44c6-b6c3-e7c9a3c1b274 302 in 1504ms
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 8.2s (223 modules)
+ ○ Compiling /painel ...
+ ✓ Compiled /painel in 8.5s (987 modules)
+ GET /painel 200 in 19944ms
+ GET /api/auth/session 200 in 220ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ GET /api/auth/session 200 in 3130ms
+ GET /api/auth/session 200 in 141ms
+ GET /api/auth/session 200 in 823ms
+ GET /painel 200 in 5471ms
+ GET /api/auth/session 200 in 442ms
+ GET /api/auth/session 200 in 120ms
+ GET /painel 200 in 858ms
+ GET /api/auth/session 200 in 124ms
+ GET /api/auth/session 200 in 230ms
+ GET /painel 200 in 573ms
+ GET /api/auth/session 200 in 124ms
+ ○ Compiling /painel/formularios ...
+ ✓ Compiled /painel/formularios in 8.4s (995 modules)
+ GET /painel/formularios 200 in 10378ms
+ GET /painel/formularios 200 in 437ms
+ GET /painel 200 in 350ms
+ ○ Compiling /painel/revisao ...
+ ✓ Compiled /painel/revisao in 3.3s (990 modules)
+ GET /painel/revisao 200 in 10970ms
+ GET /painel/revisao 200 in 212ms
+ ○ Compiling /painel/mapas ...
+ ✓ Compiled /painel/mapas in 2.9s (998 modules)
+ GET /painel/mapas 200 in 3830ms
+ ○ Compiling /painel/pessoas ...
+ ✓ Compiled /painel/pessoas in 3.4s (1006 modules)
+ GET /painel/pessoas 200 in 5052ms
+ ○ Compiling /painel/atribuicoes ...
+ ✓ Compiled /painel/atribuicoes in 6.1s (996 modules)
+ GET /painel/atribuicoes 200 in 7994ms
+ ○ Compiling /painel/exportacoes ...
+ ✓ Compiled /painel/exportacoes in 8.2s (998 modules)
+ GET /painel/exportacoes 200 in 10638ms
+ GET /painel/exportacoes 200 in 181ms
+ GET /painel/formularios 200 in 355ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 13.5s (706 modules)
+ GET /api/auth/session 200 in 20152ms
+ GET /painel/formularios 200 in 17037ms
+ GET /painel/formularios 200 in 2211ms
+ GET /api/auth/session 200 in 143ms
+ ○ Compiling /painel/revisao ...
+ ✓ Compiled /painel/revisao in 6.1s (708 modules)
+ GET /painel/revisao 200 in 7038ms
+ GET /painel/revisao 200 in 145ms
+ GET /api/auth/session 200 in 241ms
+ GET /painel/mapas 200 in 452ms
+ GET /api/auth/session 200 in 153ms
+ GET /painel/pessoas 200 in 356ms
+ GET /api/auth/session 200 in 953ms
+ GET /painel/atribuicoes 200 in 1300ms
+ GET /api/auth/session 200 in 98ms
+ GET /painel/exportacoes 200 in 300ms
+ GET /api/auth/session 200 in 226ms
+ GET /api/auth/session 200 in 139ms
+ GET /api/auth/session 200 in 1005ms
+ GET /painel/pessoas 200 in 1285ms
+ ✓ Compiled in 44.5s (697 modules)
+ ✓ Compiled in 18.9s (1215 modules)
+ ✓ Compiled in 5.1s (992 modules)
+ ✓ Compiled in 869ms (295 modules)
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 23.6s (702 modules)
+ GET /api/auth/csrf 200 in 27096ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ GET /painel/pessoas 200 in 44361ms
+ POST /api/auth/signin/keycloak 200 in 1849ms
+ GET /api/auth/session 200 in 5829ms
+ GET /api/auth/callback/keycloak?state=jqJe7nY8PH2aPpcn-sqHb-V7gQZDJ6tm4tCevZZYP_U&session_state=3d3713ba-da9b-4dfa-8b7b-ca18c89bc725&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fcvforms&code=57d48592-2808-4ae6-9977-0b9569872e36.3d3713ba-da9b-4dfa-8b7b-ca18c89bc725.e68c2419-8b54-44c6-b6c3-e7c9a3c1b274 302 in 860ms
+ ○ Compiling /painel ...
+ ✓ Compiled /painel in 10.1s (704 modules)
+ GET /painel 200 in 14312ms
+ GET /painel/pessoas 200 in 829ms
+ GET /painel 200 in 732ms
+ ○ Compiling /painel/projectos ...
+ ✓ Compiled /painel/projectos in 18.5s (1007 modules)
+ GET /painel/projectos 200 in 21382ms
+ ○ Compiling /painel/formularios ...
+ ✓ Compiled /painel/formularios in 5.1s (716 modules)
+ GET /painel/formularios 200 in 6402ms
+ GET /painel/pessoas 200 in 569ms
+ GET /painel/pessoas 200 in 1115ms
+ GET /painel/atribuicoes 200 in 886ms
+ ○ Compiling /api/cvforms/[...caminho] ...
+ ✓ Compiled /api/cvforms/[...caminho] in 10s (1025 modules)
+ GET /painel/exportacoes 200 in 26471ms
+ GET /painel/mapas 200 in 3100ms
+ POST /api/cvforms/admin/users/ebb8603a-db9a-4a1c-ad8b-aae3f309708b/roles 201 in 30368ms
+ GET /painel/revisao 200 in 602ms
+ GET /painel/pessoas 200 in 440ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 3.8s (728 modules)
+ GET /api/auth/session 200 in 5144ms
+ GET /painel/projectos 200 in 1464ms
+ GET /painel/projectos 200 in 448ms
+ GET /painel/formularios 200 in 3720ms
+ GET /painel/pessoas 200 in 10932ms
+ GET /painel/formularios 200 in 4322ms
+ GET /api/auth/session 200 in 1306ms
+ POST /api/cvforms/admin/forms 201 in 683ms
+ ○ Compiling /painel/formularios/[id] ...
+ ✓ Compiled /painel/formularios/[id] in 25.9s (1271 modules)
+ POST /api/cvforms/admin/forms 500 in 2180ms
+ GET /painel/formularios/01a08198-2e6a-7065-904d-7500f9fb1ab3 200 in 34147ms
+ GET /api/auth/csrf 200 in 397ms
+ POST /api/auth/signin/keycloak 200 in 1059ms
+ GET /api/auth/callback/keycloak?state=UsACXFeIyAnd8ypqHCIWOEkgArTEEoxmmlKkYOZDZ80&session_state=d544c5a0-44ef-48de-915d-fa17dc45c2e9&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fcvforms&code=711caccd-5308-488b-87d2-50052b388ff0.d544c5a0-44ef-48de-915d-fa17dc45c2e9.e68c2419-8b54-44c6-b6c3-e7c9a3c1b274 302 in 468ms
+ ○ Compiling /painel ...
+ ✓ Compiled /painel in 11s (845 modules)
+ GET /painel 200 in 25987ms
+ GET /api/auth/session 200 in 2158ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ ✓ Compiled in 22.5s (829 modules)
+ GET /api/auth/session 200 in 683ms
+ GET /api/auth/session 200 in 206ms
+ GET /painel/formularios/01a08198-2e6a-7065-904d-7500f9fb1ab3 200 in 20506ms
+ GET /api/auth/session 200 in 109119ms
+ ○ Compiling /painel ...
+ ✓ Compiled /painel in 35.3s (826 modules)
+ GET /painel/formularios/01a08198-2e6a-7065-904d-7500f9fb1ab3 200 in 6449ms
+ GET /painel 200 in 79140ms
+ GET /painel/projectos 200 in 5426ms
+ ○ Compiling /painel/pessoas ...
+ ✓ Compiled /painel/pessoas in 83.9s (832 modules)
+ GET /painel/pessoas 200 in 90758ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 6.2s (835 modules)
+ GET /api/auth/session 200 in 10795ms
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 33.9s (824 modules)
+ ✓ Compiled (829 modules)
+ GET /api/auth/csrf 200 in 9546ms
+ POST /api/auth/signin/keycloak 200 in 1465ms
+ GET /api/auth/callback/keycloak?state=ijMb587As7x8njG7QyqURVfGTzNd0xvJYjNPimRhilo&session_state=94511469-96a2-4570-acd6-3fff67387277&iss=http%3A%2F%2Flocalhost%3A8080%2Frealms%2Fcvforms&code=6d0c3712-d6a1-43bb-9340-e675ec11bcec.94511469-96a2-4570-acd6-3fff67387277.e68c2419-8b54-44c6-b6c3-e7c9a3c1b274 302 in 1298ms
+ ○ Compiling /painel ...
+ ✓ Compiled /painel in 2.2s (831 modules)
+ GET /painel 200 in 4780ms
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ GET /painel 200 in 16419ms
+ GET /painel/projectos 200 in 894ms
+ GET /painel/formularios 200 in 926ms
+ ○ Compiling /painel/pessoas ...
+ ✓ Compiled /painel/pessoas in 18.1s (832 modules)
+ GET /painel/pessoas 200 in 63425ms
+ GET /painel/atribuicoes 200 in 1282ms
+ GET /painel/exportacoes 200 in 682ms
+ ○ Compiling /painel/mapas ...
+ ✓ Compiled /painel/mapas in 14.8s (836 modules)
+ GET /painel/mapas 200 in 20780ms
+ ✓ Compiled in 5.2s (836 modules)
+ ○ Compiling /painel/revisao ...
+ ✓ Compiled /painel/revisao in 3.2s (838 modules)
+ GET /painel/revisao 200 in 5353ms
+ ✓ Compiled in 94.1s (1254 modules)
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+Watchpack Error (stats): Error: EINVAL: invalid argument, lstat 'C:\pagefile.sys'
+ ○ Compiling /api/auth/[...nextauth] ...
+ ✓ Compiled /api/auth/[...nextauth] in 35.1s (829 modules)
+ GET /api/auth/session 200 in 65704ms
+ GET /api/auth/session 200 in 1708ms

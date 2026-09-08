@@ -1,0 +1,4 @@
+Supabase_AppGis
+
+Senha do banco de dados
+0lymtOj23UVxdAfm
